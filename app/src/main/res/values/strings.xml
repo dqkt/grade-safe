@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">GradeSafe</string>
+    <string name="year_options_info">Tap for more options</string>
+    <string name="remove_term_description">Remove a term</string>
+    <string name="add_term_description">Add a term</string>
+    <string name="edit_year">Edit year</string>
+    <string name="counts_toward_gpa">Counts toward GPA</string>
+</resources>
