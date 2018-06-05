@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:title="Settings"
+        android:icon="@drawable/ic_settings"
+        android:id="@+id/settings_option"/>
+    <item
+        android:title="Help &amp; feedback"
+        android:icon="@drawable/ic_help"
+        android:id="@+id/help_option"/>
+</menu>

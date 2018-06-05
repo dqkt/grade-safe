@@ -1,6 +1,7 @@
 package com.example.dq.gradesafe;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -16,8 +17,24 @@ import java.util.ArrayList;
 
 public abstract class Maintenance {
 
-    public static <E> void saveArrayList(Activity activity, ArrayList<E> list, String sharedPreferencesName, String key){
-        SharedPreferences prefs = activity.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE);
+    public static <E> void saveObject(Application application, E obj, String sharedPreferencesName, String key){
+        SharedPreferences prefs = application.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(obj);
+        editor.putString(key, json);
+        editor.apply();
+    }
+
+    public static <E> E loadObject(Application application, Class<E> dataClass, String sharedPreferencesName, String key){
+        SharedPreferences prefs = application.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = prefs.getString(key, null);
+        return gson.fromJson(json, dataClass);
+    }
+
+    public static <E> void saveArrayList(Application application, ArrayList<E> list, String sharedPreferencesName, String key){
+        SharedPreferences prefs = application.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         Gson gson = new Gson();
         String json = gson.toJson(list);
@@ -25,8 +42,8 @@ public abstract class Maintenance {
         editor.apply();
     }
 
-    public static <E> ArrayList<E> loadArrayList(Activity activity, Class<E> dataClass, String sharedPreferencesName, String key){
-        SharedPreferences prefs = activity.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE);
+    public static <E> ArrayList<E> loadArrayList(Application application, Class<E> dataClass, String sharedPreferencesName, String key){
+        SharedPreferences prefs = application.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String json = prefs.getString(key, null);
         ArrayList<E> arrayList = gson.fromJson(json, getType(ArrayList.class, dataClass));

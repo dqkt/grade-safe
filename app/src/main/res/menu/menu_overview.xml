@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/search_items"
+        android:icon="@drawable/ic_search"
+        app:showAsAction="ifRoom|withText"
+        android:title="Search"
+        android:titleCondensed="Search"
+        app:actionViewClass="android.support.v7.widget.SearchView"/>
+
+    <item
+        android:id="@+id/menu_button_add_year"
+        android:icon="@drawable/ic_add"
+        app:showAsAction="ifRoom|withText"
+        android:title="Add year"
+        android:titleCondensed="Add"/>
+</menu>

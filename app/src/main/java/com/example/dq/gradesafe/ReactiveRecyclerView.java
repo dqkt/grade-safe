@@ -7,6 +7,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
 
 /**
  * Created by DQ on 3/21/2018.
@@ -64,6 +65,7 @@ public class ReactiveRecyclerView extends RecyclerView {
     public interface TouchCallback {
         boolean onMove(ReactiveRecyclerView.ViewHolder viewHolder, ReactiveRecyclerView.ViewHolder target);
         void setIsRearranging(boolean isRearranging);
+        void onSwiped(RecyclerView.ViewHolder viewHolder, int direction);
     }
 
     public Class<?> getHeaderClass() {
@@ -92,18 +94,18 @@ public class ReactiveRecyclerView extends RecyclerView {
                     super.clearView(recyclerView, viewHolder);
 
                     int numItems = recyclerView.getChildCount();
-                    View yearView;
+                    View view;
                     for (int i = 0; i < numItems; i++) {
-                        yearView = recyclerView.getChildAt(i);
-                        ((ReactiveRecyclerView.ViewHolder) recyclerView.getChildViewHolder(yearView)).setIsLongClicked(false);
-                        yearView.animate().alpha(1.0f).setListener(null);
+                        view = recyclerView.getChildAt(i);
+                        ((ReactiveRecyclerView.ViewHolder) recyclerView.getChildViewHolder(view)).setIsLongClicked(false);
+                        view.animate().alpha(1.0f).setListener(null);
                     }
                     touchCallback.setIsRearranging(false);
                 }
 
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-
+                    touchCallback.onSwiped(viewHolder, direction);
                 }
 
                 @Override

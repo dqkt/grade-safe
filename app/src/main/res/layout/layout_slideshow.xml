@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.view.ViewPager
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@color/colorPrimaryDark"
     android:elevation="3dp"
     android:id="@+id/pager_slideshow"
     android:layout_width="match_parent"
-    android:layout_height="200dp" />
+    android:layout_height="150dp"/>

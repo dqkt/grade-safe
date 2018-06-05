@@ -13,24 +13,36 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.example.dq.gradesafe.ReactiveRecyclerView
-            app:dragDirs="up|down"
-            app:swipeDirs="end|start"
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:background="@color/colorPrimaryDark"
+            android:orientation="vertical"
+            android:id="@+id/term_header">
+
+            <android.support.v4.view.ViewPager
+                android:elevation="3dp"
+                android:id="@+id/pager_slideshow"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"/>
+        </FrameLayout>
+
+        <android.support.v7.widget.RecyclerView
             android:focusable="false"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
             android:clipToPadding="false"
             android:background="@android:color/transparent"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="5"
+            android:layout_height="match_parent"
             android:id="@+id/recyclerview_courses"/>
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="15dp"
+        android:layout_margin="16dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:src="@drawable/ic_item_add"

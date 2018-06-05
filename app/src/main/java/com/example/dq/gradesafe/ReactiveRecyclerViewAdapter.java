@@ -5,6 +5,7 @@ import android.support.annotation.CallSuper;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Layout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,11 +27,14 @@ public abstract class ReactiveRecyclerViewAdapter<ViewHolder extends RecyclerVie
     protected ReactiveRecyclerView reactiveRecyclerView;
     protected boolean isRearranging;
 
+    protected boolean isBinding;
+
     public ReactiveRecyclerViewAdapter(Context context, ReactiveRecyclerView reactiveRecyclerView) {
         this.context = context;
         this.reactiveRecyclerView = reactiveRecyclerView;
         this.inflater = LayoutInflater.from(context);
         this.isRearranging = false;
+        this.isBinding = false;
     }
 
     public boolean isRearranging() {
@@ -57,8 +61,10 @@ public abstract class ReactiveRecyclerViewAdapter<ViewHolder extends RecyclerVie
                 view.animate().alpha(1.0f).setListener(null);
             }
         }
-        notifyItemRangeChanged(0, firstVisible, new ArrayList<>());
-        notifyItemRangeChanged(lastVisible + 1, getItemCount() - lastVisible, new ArrayList<>());
+        if (!isBinding) {
+            notifyItemRangeChanged(0, firstVisible, new ArrayList<>());
+            notifyItemRangeChanged(lastVisible + 1, getItemCount() - lastVisible, new ArrayList<>());
+        }
     }
 
     @Override
@@ -94,6 +100,10 @@ public abstract class ReactiveRecyclerViewAdapter<ViewHolder extends RecyclerVie
                 }
             }
         }
+    }
+
+    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+
     }
 
     @Override

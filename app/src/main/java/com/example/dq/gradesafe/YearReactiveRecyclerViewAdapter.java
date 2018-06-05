@@ -1,10 +1,15 @@
 package com.example.dq.gradesafe;
 
 import android.animation.Animator;
+import android.app.Application;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
@@ -13,11 +18,15 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,205 +41,132 @@ import android.widget.TextView;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static android.view.View.GONE;
+import static com.example.dq.gradesafe.YearReactiveRecyclerViewAdapter.OPTIONS_TIMEOUT;
 
 public class YearReactiveRecyclerViewAdapter extends ReactiveRecyclerViewAdapter<YearViewHolder>
         implements ReactiveRecyclerView.TouchCallback, YearViewHolder.YearActionCallback {
 
-    private ArrayList<Year> years;
+    static final int OPTIONS_TIMEOUT = 5000;
 
-    public YearReactiveRecyclerViewAdapter(Context context, ArrayList<Year> years, ReactiveRecyclerView reactiveRecyclerView) {
+    private List<Year> years;
+    private TermListViewModel termListViewModel;
+    private YearListViewModel yearListViewModel;
+    private YearActionCallback yearActionCallback;
+
+    YearReactiveRecyclerViewAdapter(Context context, List<Year> years, ReactiveRecyclerView reactiveRecyclerView, YearListViewModel yearListViewModel, YearActionCallback yearActionCallback) {
         super(context, reactiveRecyclerView);
         this.years = years;
         this.reactiveRecyclerView.setTouchCallback(this);
-        this.reactiveRecyclerView.setHeaderClass(MainHeader.class);
+        this.yearListViewModel = yearListViewModel;
+        this.termListViewModel = ViewModelProviders.of((OverviewActivity) context).get(TermListViewModel.class);
+        this.yearActionCallback = yearActionCallback;
     }
 
     @Override
     public boolean hasHeader() {
-        return true;
+        return false;
     }
 
     @Override
     public boolean onMove(ReactiveRecyclerView.ViewHolder viewHolder, ReactiveRecyclerView.ViewHolder target) {
         int fromPosition = viewHolder.getAdapterPosition();
         int toPosition = target.getAdapterPosition();
-        if (!(target instanceof MainHeader)) {
-            if (fromPosition < toPosition) {
-                for (int i = fromPosition; i < toPosition; i++) {
-                    Collections.swap(years, i, i + 1);
-                }
-            } else {
-                for (int i = fromPosition; i > toPosition; i--) {
-                    Collections.swap(years, i, i - 1);
-                }
+        Year fromYear, toYear;
+        if (fromPosition < toPosition) {
+            for (int i = fromPosition; i < toPosition; i++) {
+                fromYear = years.get(i);
+                toYear = years.get(i + 1);
+                fromYear.setListIndex(i + 1);
+                toYear.setListIndex(i);
+                Collections.swap(years, i, i + 1);
             }
-            notifyItemMoved(fromPosition, toPosition);
-            return true;
+        } else {
+            for (int i = fromPosition; i > toPosition; i--) {
+                fromYear = years.get(i);
+                toYear = years.get(i - 1);
+                fromYear.setListIndex(i - 1);
+                toYear.setListIndex(i);
+                Collections.swap(years, i, i - 1);
+            }
         }
-        return false;
+        notifyItemMoved(fromPosition, toPosition);
+        return true;
+    }
+
+    public void saveRearrangedYears() {
+        for (Year year : years) {
+            yearListViewModel.updateYear(year);
+        }
+    }
+
+    public void updateYears(List<Year> years) {
+        Log.d("DEBUG", "update years");
+        DiffUtil.DiffResult difference = DiffUtil.calculateDiff(new YearListDiffCallback(this.years, years));
+        this.years.clear();
+        this.years.addAll(years);
+        difference.dispatchUpdatesTo(this);
     }
 
     @Override
     public void modifyYear(Year year, String yearName) {
-        year.setName(yearName);
+        yearActionCallback.modifyYear(year, yearName);
         notifyItemChanged(years.indexOf(year));
     }
 
     @Override
     public void deleteYear(Year year) {
+        termListViewModel.removeAllTermsInYear(year);
+        yearActionCallback.deleteYear(year);
         int position = years.indexOf(year);
-        years.remove(year);
         notifyItemRemoved(position);
     }
 
     @Override
-    public void addTerm(Year year, Term term) {
-        year.addTerm(term);
-        notifyItemChanged(years.indexOf(year));
+    public void notifyTermsChanged() {
+        notifyDataSetChanged();
+    }
+
+    public void setYears(List<Year> years) {
+        this.years = years;
+        notifyDataSetChanged();
     }
 
     @Override
     public YearViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == TYPE_HEADER) {
-            final ViewPager header = (ViewPager) inflater.inflate(R.layout.layout_slideshow, parent, false);
-            return new MainHeader(header, context);
-        } else if (viewType == TYPE_ITEM) {
-            final RelativeLayout yearLayout = (RelativeLayout) inflater.inflate(R.layout.layout_year, parent, false);
-            YearViewHolder yearViewHolder = new YearViewHolder(yearLayout, context, reactiveRecyclerView);
-            yearViewHolder.setYearActionCallback(this);
-            return yearViewHolder;
-        }
-        return null;
+        final RelativeLayout yearLayout = (RelativeLayout) inflater.inflate(R.layout.layout_year, parent, false);
+        YearViewHolder yearViewHolder = new YearViewHolder(yearLayout, context, reactiveRecyclerView, termListViewModel);
+        yearViewHolder.setYearActionCallback(this);
+        return yearViewHolder;
     }
 
     @Override
     public void onBindViewHolder(YearViewHolder holder, int position) {
+        isBinding = true;
         super.onBindViewHolder(holder, position);
-        if (!(holder instanceof MainHeader)) {
-            final Year currentYear = years.get(position);
 
-            holder.year = currentYear;
-            if (holder.year.getTerms().size() == 0) {
-                holder.termRecyclerView.setVisibility(GONE);
-                holder.noTerms.setVisibility(View.VISIBLE);
-            } else {
-                holder.termRecyclerView.setVisibility(View.VISIBLE);
-                holder.noTerms.setVisibility(GONE);
-            }
+        final Year currentYear = years.get(position);
+        holder.year = currentYear;
+        holder.setUpTermListViewModel();
+        holder.updateTermListView();
 
-            holder.name.setText(currentYear.getName());
+        holder.name.setText(String.valueOf(currentYear.getName()));
 
-            holder.termRecyclerViewAdapter = new TermReactiveRecyclerViewAdapter(context, currentYear.getTerms(), holder.termRecyclerView);
-            holder.termRecyclerView.setAdapter(holder.termRecyclerViewAdapter);
-            LinearLayoutManager termsLinearLayoutManager = new LinearLayoutManager(context);
-            termsLinearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-            holder.termRecyclerView.setLayoutManager(termsLinearLayoutManager);
-
-            holder.termRecyclerViewAdapter.notifyDataSetChanged();
-        } else {
-            MainHeader mainHeader = (MainHeader) holder;
-        }
+        isBinding = false;
     }
 
     @Override
     public int getItemCount() {
         return years.size();
     }
-}
 
-class MainHeader extends YearViewHolder {
-
-    private int NUM_SLIDES = 5;
-
-    private ViewPager slideshowPager;
-    private ScrollView pagerScrollView;
-
-    private PagerAdapter slideshowPagerAdapter;
-    private Field slideshowScroller;
-    private Handler handler;
-    private Runnable slideshowUpdate;
-    private Timer slideshowTimer;
-    private TimerTask slideshowTimerTask;
-
-    private int currentSlide;
-
-    public MainHeader(View view, Context context) {
-        super(view);
-
-        slideshowPager = (ViewPager) view;
-        slideshowPager.setPageTransformer(true, new ZoomOutPageTransformer());
-        slideshowPagerAdapter = new SlidePagerAdapter(((OverviewActivity) context).getSupportFragmentManager());
-        slideshowPager.setAdapter(slideshowPagerAdapter);
-
-        View slideLayout = LayoutInflater.from(context).inflate(R.layout.fragment_slide, null);
-
-        pagerScrollView = (ScrollView) slideLayout.findViewById(R.id.pager_content);
-
-        slideshowPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                currentSlide = position;
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
-
-        try {
-            slideshowScroller = ViewPager.class.getDeclaredField("mScroller");
-            slideshowScroller.setAccessible(true);
-            slideshowScroller.set(slideshowPager, new CustomScroller(context, new AccelerateDecelerateInterpolator(), 500));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        handler = new Handler();
-        slideshowTimer = new Timer();
-        slideshowTimerTask = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(slideshowUpdate);
-            }
-        };
-        currentSlide = 0;
-
-        slideshowUpdate = new Runnable() {
-            public void run() {
-                if (currentSlide == NUM_SLIDES - 1) {
-                    currentSlide = 0;
-                }
-                slideshowPager.setCurrentItem(currentSlide++, true);
-            }
-        };
-
-        slideshowTimer.schedule(slideshowTimerTask, 0, 5000);
-    }
-
-    private class SlidePagerAdapter extends FragmentStatePagerAdapter {
-        public SlidePagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return new SlidePageFragment();
-        }
-
-        @Override
-        public int getCount() {
-            return NUM_SLIDES;
-        }
+    public interface YearActionCallback {
+        void modifyYear(Year year, String yearName);
+        void deleteYear(Year year);
     }
 }
 
@@ -244,8 +180,10 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
     public LinearLayout regularLayout;
     public TextView name;
 
-    public ReactiveRecyclerView termRecyclerView;
-    public TermReactiveRecyclerViewAdapter termRecyclerViewAdapter;
+    public TermListViewModel termListViewModel;
+
+    public RecyclerView termRecyclerView;
+    public TermRecyclerViewAdapter termRecyclerViewAdapter;
     public TextView noTerms;
 
     public RelativeLayout editYear;
@@ -267,7 +205,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
         super(view);
     }
 
-    public YearViewHolder(View view, Context context, ReactiveRecyclerView reactiveRecyclerView) {
+    public YearViewHolder(View view, Context context, ReactiveRecyclerView reactiveRecyclerView, TermListViewModel termListViewModel) {
         super(view, reactiveRecyclerView.getAdapter());
 
         this.context = context;
@@ -275,7 +213,9 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
         overallLayout = (RelativeLayout) view;
         regularLayout = (LinearLayout) view.findViewById(R.id.layout_regular);
         name = (TextView) regularLayout.findViewById(R.id.textview_name);
-        termRecyclerView = (ReactiveRecyclerView) regularLayout.findViewById(R.id.recyclerview_terms);
+        termRecyclerView = (RecyclerView) regularLayout.findViewById(R.id.recyclerview_terms);
+        termRecyclerViewAdapter = new TermRecyclerViewAdapter(context, new ArrayList<Term>(), termListViewModel, year);
+        termRecyclerView.setAdapter(termRecyclerViewAdapter);
 
         noTerms = (TextView) regularLayout.findViewById(R.id.textview_no_terms);
 
@@ -326,12 +266,79 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
                     yearOptions.animate().setDuration(200).alpha(1.0f).setListener(null);
                     isShowingOptions = true;
 
-                    optionsHandler.postDelayed(optionsTimeout, 5000);
+                    optionsHandler.postDelayed(optionsTimeout, OPTIONS_TIMEOUT);
                 }
             }
         });
 
+        this.termListViewModel = termListViewModel;
         setUpOptions();
+    }
+
+    public void setUpTermListViewModel() {
+        Year currentYear = year == null ? new Year("") : year;
+        termRecyclerViewAdapter = new TermRecyclerViewAdapter(context, new ArrayList<Term>(), termListViewModel, year);
+        termRecyclerView.setAdapter(termRecyclerViewAdapter);
+        LinearLayoutManager termsLinearLayoutManager = new LinearLayoutManager(context);
+        termsLinearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        termRecyclerView.setLayoutManager(termsLinearLayoutManager);
+
+        termListViewModel.getTermsInYear(currentYear).observe((OverviewActivity) context, new Observer<List<Term>>() {
+            @Override
+            public void onChanged(@Nullable List<Term> terms) {
+                termRecyclerViewAdapter.updateTerms(terms);
+                updateTermListView();
+            }
+        });
+
+        SwipeUtil swipeUtil = new SwipeUtil(ItemTouchHelper.END | ItemTouchHelper.START, 0, context) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                termRecyclerViewAdapter.onMove(viewHolder, target);
+                return false;
+            }
+
+            @Override
+            public void clearView(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+            }
+
+            @Override
+            public boolean isItemViewSwipeEnabled() {
+                return true;
+            }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return true;
+            }
+
+            @Override
+            public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                return makeMovementFlags(ItemTouchHelper.END | ItemTouchHelper.START, 0);
+            }
+
+            @Override
+            public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            }
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipeUtil);
+        itemTouchHelper.attachToRecyclerView(termRecyclerView);
+        }
+
+    public void updateTermListView() {
+        int numTerms = termRecyclerViewAdapter.getItemCount();
+        if (numTerms == 0) {
+            termRecyclerView.setVisibility(GONE);
+            noTerms.setVisibility(View.VISIBLE);
+        } else {
+            termRecyclerView.setVisibility(View.VISIBLE);
+            noTerms.setVisibility(GONE);
+        }
     }
 
     private void hideOptions() {
@@ -395,7 +402,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
 
                         if (valid) {
                             dialog.dismiss();
-                            optionsHandler.postDelayed(optionsTimeout, 5000);
+                            optionsHandler.postDelayed(optionsTimeout, OPTIONS_TIMEOUT);
                             yearActionCallback.modifyYear(year, yearName);
                         }
                     }
@@ -405,7 +412,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
                     @Override
                     public void onClick(View v) {
                         dialog.dismiss();
-                        optionsHandler.postDelayed(optionsTimeout, 5000);
+                        optionsHandler.postDelayed(optionsTimeout, OPTIONS_TIMEOUT);
                     }
                 });
             }
@@ -464,7 +471,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
                     @Override
                     public void onClick(View v) {
                         dialog.dismiss();
-                        optionsHandler.postDelayed(optionsTimeout, 5000);
+                        optionsHandler.postDelayed(optionsTimeout, OPTIONS_TIMEOUT);
                     }
                 });
             }
@@ -521,9 +528,12 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
                         }
 
                         if (valid) {
+                            optionsHandler.postDelayed(optionsTimeout, OPTIONS_TIMEOUT);
+                            Term newTerm = new Term(termName, year.getYearID());
+                            newTerm.setListIndex(termRecyclerViewAdapter.getItemCount());
+                            termListViewModel.addTerm(newTerm);
+                            yearActionCallback.notifyTermsChanged();
                             dialog.dismiss();
-                            optionsHandler.postDelayed(optionsTimeout, 5000);
-                            yearActionCallback.addTerm(year, new Term(termName));
                         }
                     }
                 });
@@ -532,7 +542,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
                     @Override
                     public void onClick(View v) {
                         dialog.dismiss();
-                        optionsHandler.postDelayed(optionsTimeout, 5000);
+                        optionsHandler.postDelayed(optionsTimeout, OPTIONS_TIMEOUT);
                     }
                 });
             }
@@ -546,6 +556,6 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
     public interface YearActionCallback {
         void modifyYear(Year year, String yearName);
         void deleteYear(Year year);
-        void addTerm(Year year, Term term);
+        void notifyTermsChanged();
     }
 }

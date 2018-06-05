@@ -14,6 +14,6 @@ public class SlidePageFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return (ViewGroup) inflater.inflate(R.layout.fragment_slide, container, false);
+        return (ViewGroup) inflater.inflate(R.layout.layout_term_page, container, false);
     }
 }
