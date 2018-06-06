@@ -10,7 +10,7 @@ public class TermListDiffCallback extends DiffUtil.Callback {
     private List<Term> oldTerms;
     private List<Term> newTerms;
 
-    public TermListDiffCallback(List<Term> oldTerms, List<Term> newTerms) {
+    TermListDiffCallback(List<Term> oldTerms, List<Term> newTerms) {
         this.oldTerms = oldTerms;
         this.newTerms = newTerms;
     }

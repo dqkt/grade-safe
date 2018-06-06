@@ -53,8 +53,7 @@ import java.util.TimerTask;
 public class OverviewActivity extends AppCompatActivity
         implements YearReactiveRecyclerViewAdapter.YearActionCallback {
 
-    private static final float PERCENTAGE_TO_SHOW_TITLE_AT_TOOLBAR  = 0.9f;
-    private static final float PERCENTAGE_TO_HIDE_TITLE_DETAILS     = 0.5f;
+    private static final float PERCENTAGE_TO_SHOW_TITLE_AT_TOOLBAR  = 0.8f;
     private static final int ALPHA_ANIMATIONS_DURATION              = 200;
 
     private YearListViewModel yearListViewModel;
@@ -73,7 +72,6 @@ public class OverviewActivity extends AppCompatActivity
 
     private Toolbar overviewToolbar;
     private AppBarLayout appBarLayout;
-    private CollapsingToolbarLayout collapsingToolbarLayout;
 
     private TextView title;
     private FrameLayout titleContainer;
@@ -82,7 +80,6 @@ public class OverviewActivity extends AppCompatActivity
     private TextView overallNumCredits;
 
     private boolean isTheTitleVisible = false;
-    private boolean isTheTitleContainerVisible = true;
 
     private DrawerLayout mainDrawer;
     private ActionBarDrawerToggle mainDrawerToggle;
@@ -107,33 +104,17 @@ public class OverviewActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
         getMenuInflater().inflate(R.menu.menu_overview, menu);
-        hideOption(R.id.menu_button_add_year);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     protected void onResume() {
-        yearListViewModel.getYearList().observe(this, yearListObserver);
-
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        yearListViewModel.getYearList().removeObserver(yearListObserver);
-        yearRecyclerViewAdapter.saveRearrangedYears();
-
         super.onPause();
-    }
-
-    private void hideOption(int id) {
-        MenuItem item = menu.findItem(id);
-        item.setVisible(false);
-    }
-
-    private void showOption(int id) {
-        MenuItem item = menu.findItem(id);
-        item.setVisible(true);
     }
 
     private void setUpToolbar() {
@@ -144,7 +125,6 @@ public class OverviewActivity extends AppCompatActivity
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         appBarLayout = findViewById(R.id.overview_appbar_container);
-        collapsingToolbarLayout = findViewById(R.id.overview_collapsing);
 
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             boolean isShowingOption = false;
@@ -155,36 +135,11 @@ public class OverviewActivity extends AppCompatActivity
                 if (scrollRange == -1) {
                     scrollRange = appBarLayout.getTotalScrollRange();
                 }
-                /*if (scrollRange + verticalOffset == 0) {
-                    isShowingOption = true;
-                    showOption(R.id.menu_button_add_year);
-                } else if (isShow) {
-                    isShowingOption = false;
-                    hideOption(R.id.menu_button_add_year);
-                }*/
-
-                /*if (verticalOffset <= -300) {
-                    Window window = getWindow();
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                    int statusBarColor = ContextCompat.getColor(OverviewActivity.this, R.color.colorPrimaryDark);
-                    if (window.getStatusBarColor() != statusBarColor) {
-                        window.setStatusBarColor(statusBarColor);
-                    }
-                } else {
-                    Window window = getWindow();
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                    int statusBarColor = ContextCompat.getColor(OverviewActivity.this, R.color.statusBarPrimaryColor);
-                    if (window.getStatusBarColor() != statusBarColor) {
-                        window.setStatusBarColor(statusBarColor);
-                    }
-                }*/
 
                 int maxScroll = appBarLayout.getTotalScrollRange();
-                float percentage = (float) Math.abs(verticalOffset) / (float) maxScroll;
+                float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.8));
 
-                handleAlphaOnTitle(percentage);
+                titleContainer.setAlpha(1 - percentage);
                 handleToolbarTitleVisibility(percentage);
             }
         });
@@ -223,20 +178,6 @@ public class OverviewActivity extends AppCompatActivity
             if (isTheTitleVisible) {
                 startAlphaAnimation(title, ALPHA_ANIMATIONS_DURATION, View.INVISIBLE);
                 isTheTitleVisible = false;
-            }
-        }
-    }
-
-    private void handleAlphaOnTitle(float percentage) {
-        if (percentage >= PERCENTAGE_TO_HIDE_TITLE_DETAILS) {
-            if (isTheTitleContainerVisible) {
-                startAlphaAnimation(titleContainer, ALPHA_ANIMATIONS_DURATION, View.INVISIBLE);
-                isTheTitleContainerVisible = false;
-            }
-        } else {
-            if (!isTheTitleContainerVisible) {
-                startAlphaAnimation(titleContainer, ALPHA_ANIMATIONS_DURATION, View.VISIBLE);
-                isTheTitleContainerVisible = true;
             }
         }
     }
@@ -367,7 +308,6 @@ public class OverviewActivity extends AppCompatActivity
                             Year newYear = new Year(yearName);
                             newYear.setListIndex(yearRecyclerViewAdapter.getItemCount());
                             yearListViewModel.addYear(newYear);
-                            Log.d("DEBUG", "add year");
                             dialog.dismiss();
                         }
                     }

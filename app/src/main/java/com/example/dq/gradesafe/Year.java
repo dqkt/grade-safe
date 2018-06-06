@@ -16,6 +16,7 @@ import android.os.Parcelable;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by DQ on 3/19/2018.
@@ -55,9 +56,12 @@ public class Year implements Serializable {
     public int getListIndex() {
         return listIndex;
     }
-
     public void setListIndex(int listIndex) {
         this.listIndex = listIndex;
+    }
+
+    public boolean equals(final Year otherYear) {
+        return Objects.equals(name, otherYear.name);
     }
 
     @Dao

@@ -16,7 +16,6 @@
         <android.support.design.widget.CoordinatorLayout
             android:background="@android:color/transparent"
             android:focusable="false"
-            android:descendantFocusability="afterDescendants"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -52,7 +51,7 @@
                             android:layout_height="200dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/library"
-                            android:tint="#11000000"
+                            android:tint="#441565c0"
                             android:contentDescription="Default header background"/>
                     </FrameLayout>
 
@@ -120,13 +119,14 @@
 
             <com.example.dq.gradesafe.ReactiveRecyclerView
                 app:dragDirs="up|down"
-                android:focusable="false"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:descendantFocusability="afterDescendants"
                 android:clipToPadding="false"
                 android:background="@android:color/transparent"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                android:descendantFocusability="afterDescendants"
                 android:id="@+id/recyclerview_years"/>
 
             <android.support.design.widget.FloatingActionButton

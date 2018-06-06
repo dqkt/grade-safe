@@ -49,7 +49,7 @@ import static android.view.View.GONE;
 import static com.example.dq.gradesafe.YearReactiveRecyclerViewAdapter.OPTIONS_TIMEOUT;
 
 public class YearReactiveRecyclerViewAdapter extends ReactiveRecyclerViewAdapter<YearViewHolder>
-        implements ReactiveRecyclerView.TouchCallback, YearViewHolder.YearActionCallback {
+        implements ReactiveRecyclerView.TouchCallback {
 
     static final int OPTIONS_TIMEOUT = 5000;
 
@@ -83,6 +83,8 @@ public class YearReactiveRecyclerViewAdapter extends ReactiveRecyclerViewAdapter
                 toYear = years.get(i + 1);
                 fromYear.setListIndex(i + 1);
                 toYear.setListIndex(i);
+                yearListViewModel.updateYear(fromYear);
+                yearListViewModel.updateYear(toYear);
                 Collections.swap(years, i, i + 1);
             }
         } else {
@@ -91,6 +93,8 @@ public class YearReactiveRecyclerViewAdapter extends ReactiveRecyclerViewAdapter
                 toYear = years.get(i - 1);
                 fromYear.setListIndex(i - 1);
                 toYear.setListIndex(i);
+                yearListViewModel.updateYear(fromYear);
+                yearListViewModel.updateYear(toYear);
                 Collections.swap(years, i, i - 1);
             }
         }
@@ -98,37 +102,11 @@ public class YearReactiveRecyclerViewAdapter extends ReactiveRecyclerViewAdapter
         return true;
     }
 
-    public void saveRearrangedYears() {
-        for (Year year : years) {
-            yearListViewModel.updateYear(year);
-        }
-    }
-
     public void updateYears(List<Year> years) {
-        Log.d("DEBUG", "update years");
         DiffUtil.DiffResult difference = DiffUtil.calculateDiff(new YearListDiffCallback(this.years, years));
         this.years.clear();
         this.years.addAll(years);
         difference.dispatchUpdatesTo(this);
-    }
-
-    @Override
-    public void modifyYear(Year year, String yearName) {
-        yearActionCallback.modifyYear(year, yearName);
-        notifyItemChanged(years.indexOf(year));
-    }
-
-    @Override
-    public void deleteYear(Year year) {
-        termListViewModel.removeAllTermsInYear(year);
-        yearActionCallback.deleteYear(year);
-        int position = years.indexOf(year);
-        notifyItemRemoved(position);
-    }
-
-    @Override
-    public void notifyTermsChanged() {
-        notifyDataSetChanged();
     }
 
     public void setYears(List<Year> years) {
@@ -140,7 +118,7 @@ public class YearReactiveRecyclerViewAdapter extends ReactiveRecyclerViewAdapter
     public YearViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final RelativeLayout yearLayout = (RelativeLayout) inflater.inflate(R.layout.layout_year, parent, false);
         YearViewHolder yearViewHolder = new YearViewHolder(yearLayout, context, reactiveRecyclerView, termListViewModel);
-        yearViewHolder.setYearActionCallback(this);
+        yearViewHolder.setYearActionCallback(yearActionCallback);
         return yearViewHolder;
     }
 
@@ -196,7 +174,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
     public LinearLayout yearOptions;
     public boolean isShowingOptions;
 
-    private YearActionCallback yearActionCallback;
+    private YearReactiveRecyclerViewAdapter.YearActionCallback yearActionCallback;
 
     private RelativeLayout addTermDialogLayout;
     private EditText newTermName;
@@ -308,7 +286,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
 
             @Override
             public boolean isItemViewSwipeEnabled() {
-                return true;
+                return false;
             }
 
             @Override
@@ -328,7 +306,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipeUtil);
         itemTouchHelper.attachToRecyclerView(termRecyclerView);
-        }
+    }
 
     public void updateTermListView() {
         int numTerms = termRecyclerViewAdapter.getItemCount();
@@ -532,7 +510,6 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
                             Term newTerm = new Term(termName, year.getYearID());
                             newTerm.setListIndex(termRecyclerViewAdapter.getItemCount());
                             termListViewModel.addTerm(newTerm);
-                            yearActionCallback.notifyTermsChanged();
                             dialog.dismiss();
                         }
                     }
@@ -549,13 +526,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
         });
     }
 
-    public void setYearActionCallback(YearActionCallback yearActionCallback) {
+    public void setYearActionCallback(YearReactiveRecyclerViewAdapter.YearActionCallback yearActionCallback) {
         this.yearActionCallback = yearActionCallback;
-    }
-
-    public interface YearActionCallback {
-        void modifyYear(Year year, String yearName);
-        void deleteYear(Year year);
-        void notifyTermsChanged();
     }
 }

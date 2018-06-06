@@ -17,6 +17,7 @@ import android.os.Parcelable;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
@@ -33,6 +34,9 @@ public class Course implements Serializable {
     private String fullName;
     private double numCredits;
     private boolean countsTowardGPA;
+
+    @Ignore
+    List<Assignment> assignments;
 
     private double overallScore;
     private String overallGrade;
@@ -91,6 +95,10 @@ public class Course implements Serializable {
         this.countsTowardGPA = countsTowardGPA;
     }
 
+    public void setAssignments(List<Assignment> assignments) {
+        this.assignments = assignments;
+    }
+
     public double getOverallScore() {
         return overallScore;
     }
@@ -130,6 +138,12 @@ public class Course implements Serializable {
     }
     public void setListIndex(int listIndex) {
         this.listIndex = listIndex;
+    }
+
+    public boolean equals(final Course otherCourse) {
+        return Objects.equals(name, otherCourse.name) && Objects.equals(fullName, otherCourse.fullName)
+                && numCredits == otherCourse.numCredits && countsTowardGPA == otherCourse.countsTowardGPA && overallScore == otherCourse.overallScore
+                && Objects.equals(overallGrade, otherCourse.overallGrade);
     }
 
     @Dao

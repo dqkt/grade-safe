@@ -73,6 +73,8 @@ public class TermRecyclerViewAdapter extends RecyclerView.Adapter<TermViewHolder
                 toTerm = terms.get(i + 1);
                 fromTerm.setListIndex(i + 1);
                 toTerm.setListIndex(i);
+                termListViewModel.updateTerm(fromTerm);
+                termListViewModel.updateTerm(toTerm);
                 Collections.swap(terms, i, i + 1);
             }
         } else {
@@ -81,16 +83,12 @@ public class TermRecyclerViewAdapter extends RecyclerView.Adapter<TermViewHolder
                 toTerm = terms.get(i - 1);
                 fromTerm.setListIndex(i - 1);
                 toTerm.setListIndex(i);
+                termListViewModel.updateTerm(fromTerm);
+                termListViewModel.updateTerm(toTerm);
                 Collections.swap(terms, i, i - 1);
             }
         }
         notifyItemMoved(fromPosition, toPosition);
-    }
-
-    public void saveRearrangedTerms() {
-        for (Term term : terms) {
-            termListViewModel.updateTerm(term);
-        }
     }
 
     public void updateTerms(List<Term> terms) {

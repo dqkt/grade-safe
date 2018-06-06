@@ -1,19 +1,28 @@
 package com.example.dq.gradesafe;
 
+import android.arch.lifecycle.Observer;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.view.ViewPager;
+import android.content.DialogInterface;
+import android.graphics.Typeface;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -30,18 +39,24 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
 
     private List<Course> courses;
     private CourseListViewModel courseListViewModel;
+
+    private Term term;
+
     private static DecimalFormat scoreFormatter;
     private static DecimalFormat numCreditsFormatter;
 
     protected boolean isBinding;
 
-    CourseRecyclerViewAdapter(Context context, List<Course> courses, CourseListViewModel courseListViewModel) {
+    CourseRecyclerViewAdapter(Context context, List<Course> courses, CourseListViewModel courseListViewModel, Term term) {
         // super(context, reactiveRecyclerView);
         this.context = context;
         this.inflater = LayoutInflater.from(context);
 
         this.courses = courses;
         this.courseListViewModel = courseListViewModel;
+
+        this.term = term;
+
         scoreFormatter = new DecimalFormat("0.0%");
         numCreditsFormatter = new DecimalFormat("0.#");
 
@@ -72,6 +87,8 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
                 toCourse = courses.get(i + 1);
                 fromCourse.setListIndex(i + 1);
                 toCourse.setListIndex(i);
+                courseListViewModel.updateCourse(fromCourse);
+                courseListViewModel.updateCourse(toCourse);
                 Collections.swap(courses, i, i + 1);
             }
         } else {
@@ -80,6 +97,8 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
                 toCourse = courses.get(i - 1);
                 fromCourse.setListIndex(i - 1);
                 toCourse.setListIndex(i);
+                courseListViewModel.updateCourse(fromCourse);
+                courseListViewModel.updateCourse(toCourse);
                 Collections.swap(courses, i, i - 1);
             }
         }
@@ -88,19 +107,67 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
 
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
         final Course course = ((CourseViewHolder) viewHolder).course;
-        int position = courses.indexOf(course);
+        final int position = courses.indexOf(course);
         if (position != -1) {
-            courseListViewModel.removeCourse(course);
-            int numCourses = courses.size();
-            for (int i = position; i < numCourses; i++) {
-                courses.get(i).setListIndex(courses.get(i).getListIndex() - 1);
-            }
-        }
-    }
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
-    public void saveRearrangedCourses() {
-        for (Course course : courses) {
-            courseListViewModel.updateCourse(course);
+            builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                }
+            });
+
+            builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                }
+            });
+
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(TermActivity.LAYOUT_INFLATER_SERVICE);
+            RelativeLayout confirmationDialogLayout = (RelativeLayout) inflater.inflate(R.layout.confirmation_dialog, null);
+
+            TextView message = (TextView) confirmationDialogLayout.findViewById(R.id.textview_message);
+            builder.setView(confirmationDialogLayout);
+
+            final AlertDialog dialog = builder.create();
+
+            if (course != null && term != null) {
+                String courseName = course.getName();
+                String termName = term.getName();
+                SpannableStringBuilder stringBuilder = new SpannableStringBuilder("Are you sure you want to delete " + courseName + " and its assignments from " + termName + "?");
+                StyleSpan termNameSpan = new StyleSpan(Typeface.BOLD);
+                StyleSpan yearNameSpan = new StyleSpan(Typeface.BOLD);
+                int courseNameLength = courseName.length();
+                stringBuilder.setSpan(termNameSpan, 32, 32 + courseNameLength, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                stringBuilder.setSpan(yearNameSpan, 58 + courseNameLength, 58 + courseNameLength + termName.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                message.setText(stringBuilder);
+            } else {
+                message.setText(String.valueOf("Are you sure you want to delete this term and its courses from " + term.getName() + "?"));
+            }
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            dialog.setCanceledOnTouchOutside(true);
+
+            dialog.show();
+
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                    courseListViewModel.removeCourse(course);
+                    int numCourses = courses.size();
+                    for (int i = position; i < numCourses; i++) {
+                        courses.get(i).setListIndex(courses.get(i).getListIndex() - 1);
+                    }
+                }
+            });
+
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    notifyItemChanged(position);
+                    dialog.dismiss();
+                }
+            });
         }
     }
 

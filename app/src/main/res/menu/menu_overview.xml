@@ -13,7 +13,7 @@
     <item
         android:id="@+id/menu_button_add_year"
         android:icon="@drawable/ic_add"
-        app:showAsAction="ifRoom|withText"
+        app:showAsAction="never|withText"
         android:title="Add year"
         android:titleCondensed="Add"/>
 </menu>

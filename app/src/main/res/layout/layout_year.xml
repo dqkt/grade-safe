@@ -4,6 +4,7 @@
     android:background="?android:selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
+    android:descendantFocusability="afterDescendants"
     android:paddingTop="10dp"
     android:paddingBottom="10dp"
     android:layout_width="match_parent"
@@ -139,7 +140,8 @@
             <android.support.v7.widget.RecyclerView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:focusable="false"
+                android:focusable="true"
+                android:descendantFocusability="afterDescendants"
                 android:paddingStart="15dp"
                 android:paddingEnd="0dp"
                 android:clipToPadding="false"

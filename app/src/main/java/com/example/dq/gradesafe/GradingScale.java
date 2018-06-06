@@ -1,13 +1,16 @@
 package com.example.dq.gradesafe;
 
+import android.app.PendingIntent;
 import android.arch.persistence.room.TypeConverter;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -46,6 +49,27 @@ public class GradingScale implements Serializable {
 
     public ScoreRange getScoreRange(String label) {
         return scoreRanges.get(label);
+    }
+
+    public boolean equals(final GradingScale otherGradingScale) {
+        if (this == otherGradingScale) {
+            return true;
+        }
+
+        if (!Objects.equals(name, otherGradingScale.name)) {
+            return false;
+        }
+
+        if (scoreRanges.size() != otherGradingScale.scoreRanges.size()) {
+            return false;
+        }
+
+        for (String key : scoreRanges.keySet()) {
+            if (!scoreRanges.get(key).equals(otherGradingScale.scoreRanges.get(key))) {
+                return false;
+            }
+        }
+        return true;
     }
 }
 
@@ -86,6 +110,11 @@ class ScoreRange implements Serializable {
     }
     public void setContribution(double contribution) {
         this.contribution = contribution;
+    }
+
+    public boolean equals(final ScoreRange otherScoreRange) {
+        return inclusiveLowerBound == otherScoreRange.inclusiveLowerBound && exclusiveUpperBound == otherScoreRange.exclusiveUpperBound
+                && contribution == otherScoreRange.contribution;
     }
 }
 

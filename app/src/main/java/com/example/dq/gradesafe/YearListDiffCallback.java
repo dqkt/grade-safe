@@ -10,7 +10,7 @@ public class YearListDiffCallback extends DiffUtil.Callback {
     private List<Year> oldYears;
     private List<Year> newYears;
 
-    public YearListDiffCallback(List<Year> oldYears, List<Year> newYears) {
+    YearListDiffCallback(List<Year> oldYears, List<Year> newYears) {
         this.oldYears = oldYears;
         this.newYears = newYears;
     }

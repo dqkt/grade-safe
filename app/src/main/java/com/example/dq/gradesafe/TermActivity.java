@@ -265,16 +265,11 @@ public class TermActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        courseListViewModel.getCoursesInTerm(term).observe(this, courseListObserver);
-
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        courseListViewModel.getCoursesInTerm(term).removeObservers(this);
-        courseRecyclerViewAdapter.saveRearrangedCourses();
-
         super.onPause();
     }
 
@@ -355,8 +350,29 @@ public class TermActivity extends AppCompatActivity {
         courseRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_courses);
 
         courseListViewModel = ViewModelProviders.of(this).get(CourseListViewModel.class);
+        courseListObserver = new Observer<List<Course>>() {
+            @Override
+            public void onChanged(@Nullable List<Course> courses) {
+                courseRecyclerViewAdapter.updateCourses(courses);
+                term.setCourses(courses);
+                termListViewModel.updateTerm(term);
+                int numCourses = 0;
+                if (courses != null) {
+                    numCourses = courses.size();
+                }
+                boolean gradesExist = false;
+                for (int i = 0; i < numCourses; i++) {
+                    if (courses.get(i).getOverallGrade() != null){
+                        gradesExist = true;
+                        break;
+                    }
+                }
+                // updateSummary(gradesExist);
+            }
+        };
+        courseListViewModel.getCoursesInTerm(term).observe(TermActivity.this, courseListObserver);
 
-        courseRecyclerViewAdapter = new CourseRecyclerViewAdapter(this, new ArrayList<Course>(), courseListViewModel);
+        courseRecyclerViewAdapter = new CourseRecyclerViewAdapter(this, new ArrayList<Course>(), courseListViewModel, term);
         courseRecyclerView.setAdapter(courseRecyclerViewAdapter);
         LinearLayoutManager coursesLinearLayoutManager = new LinearLayoutManager(this) {
             @Override
@@ -370,31 +386,6 @@ public class TermActivity extends AppCompatActivity {
         };
         coursesLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         courseRecyclerView.setLayoutManager(coursesLinearLayoutManager);
-
-        courseListObserver = new Observer<List<Course>>() {
-
-            @Override
-            public void onChanged(@Nullable List<Course> courses) {
-                courseRecyclerViewAdapter.updateCourses(courses);
-                term.setCourses(courses);
-                termListViewModel.updateTerm(term);
-                int numCourses = 0;
-                if (courses != null) {
-                    numCourses = courses.size();
-                }
-                boolean allCoursesHaveGrades = numCourses != 0;
-                for (int i = 0; i < numCourses; i++) {
-                    if (courses.get(i).getOverallGrade() == null){
-                        allCoursesHaveGrades = false;
-                        break;
-                    }
-                }
-                // updateSummary(allCoursesHaveGrades);
-            }
-        };
-
-        courseListViewModel.getCoursesInTerm(term).observe(TermActivity.this, courseListObserver);
-
         SwipeUtil swipeUtil = new SwipeUtil(ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.START | ItemTouchHelper.END, this) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -499,7 +490,6 @@ public class TermActivity extends AppCompatActivity {
                                 Course newCourse = new Course(courseName, numCourseCredits, countsTowardGPA, term.getTermID());
                                 newCourse.setListIndex(courseRecyclerViewAdapter.getItemCount());
                                 courseListViewModel.addCourse(newCourse);
-                                courseRecyclerViewAdapter.notifyDataSetChanged();
                                 dialog.dismiss();
                             }
                         }

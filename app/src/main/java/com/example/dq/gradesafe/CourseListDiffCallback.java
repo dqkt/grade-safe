@@ -10,7 +10,7 @@ public class CourseListDiffCallback extends DiffUtil.Callback {
     private List<Course> oldCourses;
     private List<Course> newCourses;
 
-    public CourseListDiffCallback(List<Course> oldCourses, List<Course> newCourses) {
+    CourseListDiffCallback(List<Course> oldCourses, List<Course> newCourses) {
         this.oldCourses = oldCourses;
         this.newCourses = newCourses;
     }

@@ -15,6 +15,7 @@ import android.os.Parcel;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
@@ -135,9 +136,13 @@ public class Term implements Serializable {
     public int getListIndex() {
         return listIndex;
     }
-
     public void setListIndex(int listIndex) {
         this.listIndex = listIndex;
+    }
+
+    public boolean equals(final Term otherTerm) {
+        return Objects.equals(name, otherTerm.name) && gradingScale.equals(otherTerm.gradingScale)
+                && totalNumCredits == otherTerm.totalNumCredits && gpa == otherTerm.gpa;
     }
 
     @Dao
