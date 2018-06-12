@@ -23,6 +23,7 @@
         </activity>
         <activity android:name=".TermActivity"
             android:parentActivityName="com.example.dq.gradesafe.OverviewActivity"
+            android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER"/>

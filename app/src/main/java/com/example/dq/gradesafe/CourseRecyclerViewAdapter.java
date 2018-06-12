@@ -215,9 +215,11 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
             if ((overallGrade = currentCourse.getOverallGrade()) != null) {
                 holder.overallGrade.setText(overallGrade);
                 holder.overallScore.setText(scoreFormatter.format(currentCourse.getOverallScore()));
+                holder.resultsLayout.setAlpha(1.0f);
             } else {
-                holder.overallGrade.setText("?");
-                holder.overallScore.setText("--");
+                holder.overallGrade.setText("");
+                holder.overallScore.setText("");
+                holder.resultsLayout.setAlpha(0.5f);
             }
         } else {
             CoursesHeader coursesHeader = (CoursesHeader) holder;
@@ -248,6 +250,7 @@ class CourseViewHolder extends RecyclerView.ViewHolder {
     public TextView name;
     public TextView fullName;
     public TextView numCredits;
+    public RelativeLayout resultsLayout;
     public TextView overallScore;
     public TextView overallGrade;
 
@@ -265,6 +268,7 @@ class CourseViewHolder extends RecyclerView.ViewHolder {
         name = (TextView) overallLayout.findViewById(R.id.textview_name);
         fullName = (TextView) overallLayout.findViewById(R.id.textview_full_name);
         numCredits = (TextView) overallLayout.findViewById(R.id.textview_num_credits);
+        resultsLayout = (RelativeLayout) overallLayout.findViewById(R.id.layout_results);
         overallScore = (TextView) overallLayout.findViewById(R.id.textview_score);
         overallGrade = (TextView) overallLayout.findViewById(R.id.textview_grade);
 

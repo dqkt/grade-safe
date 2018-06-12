@@ -175,9 +175,7 @@ class TermViewHolder extends RecyclerView.ViewHolder {
                 i.putExtra(TermActivity.SELECTED_TERM_KEY, term);
                 i.putExtra(TermActivity.CORRESPONDING_YEAR_KEY, TermViewHolder.this.year);
                 /*ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation((Activity) context,
-                        Pair.create((View) name, name.getTransitionName()),
-                        Pair.create((View) totalNumCredits, totalNumCredits.getTransitionName()),
-                        Pair.create((View) termGPA, termGPA.getTransitionName()));
+                        Pair.create((View) overallLayout, overallLayout.getTransitionName()));
                 context.startActivity(i, options.toBundle());*/
                 context.startActivity(i);
             }

@@ -108,6 +108,18 @@ public class OverviewActivity extends AppCompatActivity
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_button_add_year: {
+                addYear();
+                return true;
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
     }
@@ -127,7 +139,6 @@ public class OverviewActivity extends AppCompatActivity
         appBarLayout = findViewById(R.id.overview_appbar_container);
 
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-            boolean isShowingOption = false;
             int scrollRange = -1;
 
             @Override
@@ -215,8 +226,8 @@ public class OverviewActivity extends AppCompatActivity
             }
         }
 
-        String titleText = gpaFormatter.format(contributionTowardGpa / overallTotalNumCredits);
         if (overallTotalNumCredits != 0) {
+            String titleText = gpaFormatter.format(contributionTowardGpa / overallTotalNumCredits);
             overallGpa.setText(titleText);
             title.setText(titleText);
         } else {
@@ -261,57 +272,7 @@ public class OverviewActivity extends AppCompatActivity
         addYearButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final AlertDialog.Builder builder = new AlertDialog.Builder(OverviewActivity.this);
-
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                });
-
-                builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                });
-
-                LayoutInflater inflater = (LayoutInflater) OverviewActivity.this.getSystemService(OverviewActivity.LAYOUT_INFLATER_SERVICE);
-                View view = inflater.inflate(R.layout.dialog_add_year, null);
-
-                addYearDialogLayout = (RelativeLayout) view.findViewById(R.id.layout_add_year);
-
-                final TextInputLayout addNewItemLayout = (TextInputLayout) addYearDialogLayout.findViewById(R.id.textinput_add_year);
-                newYearName = (TextInputEditText) addNewItemLayout.findViewById(R.id.edittext_year_name);
-                addNewItemLayout.setErrorEnabled(true);
-                builder.setView(addYearDialogLayout);
-
-                final AlertDialog dialog = builder.create();
-
-                dialog.setTitle("Add a year");
-                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-                dialog.setCanceledOnTouchOutside(true);
-
-                dialog.show();
-
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String yearName = newYearName.getText().toString().replaceAll("^\\s+|\\s+$", "");
-                        boolean valid = true;
-
-                        if (yearName.isEmpty()) {
-                            valid = false;
-                            addNewItemLayout.setError("Name cannot be blank");
-                        }
-
-                        if (valid) {
-                            Year newYear = new Year(yearName);
-                            newYear.setListIndex(yearRecyclerViewAdapter.getItemCount());
-                            yearListViewModel.addYear(newYear);
-                            dialog.dismiss();
-                        }
-                    }
-                });
+                addYear();
             }
         });
     }
@@ -325,5 +286,59 @@ public class OverviewActivity extends AppCompatActivity
     @Override
     public void deleteYear(Year year) {
         yearListViewModel.removeYear(year);
+    }
+
+    public void addYear() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(OverviewActivity.this);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        LayoutInflater inflater = (LayoutInflater) OverviewActivity.this.getSystemService(OverviewActivity.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.dialog_add_year, null);
+
+        addYearDialogLayout = (RelativeLayout) view.findViewById(R.id.layout_add_year);
+
+        final TextInputLayout addNewItemLayout = (TextInputLayout) addYearDialogLayout.findViewById(R.id.textinput_add_year);
+        newYearName = (TextInputEditText) addNewItemLayout.findViewById(R.id.edittext_year_name);
+        addNewItemLayout.setErrorEnabled(true);
+        builder.setView(addYearDialogLayout);
+
+        final AlertDialog dialog = builder.create();
+
+        dialog.setTitle("Add a year");
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        dialog.setCanceledOnTouchOutside(true);
+
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String yearName = newYearName.getText().toString().replaceAll("^\\s+|\\s+$", "");
+                boolean valid = true;
+
+                if (yearName.isEmpty()) {
+                    valid = false;
+                    addNewItemLayout.setError("Name cannot be blank");
+                }
+
+                if (valid) {
+                    Year newYear = new Year(yearName);
+                    newYear.setListIndex(yearRecyclerViewAdapter.getItemCount());
+                    yearListViewModel.addYear(newYear);
+                    dialog.dismiss();
+                }
+            }
+        });
     }
 }

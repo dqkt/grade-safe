@@ -6,21 +6,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -28,19 +22,15 @@ import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
-import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +44,8 @@ public class TermActivity extends AppCompatActivity {
     static final String SELECTED_TERM_KEY = "SELECTED_TERM";
     static final String CORRESPONDING_YEAR_KEY = "CORRESPONDING_YEAR";
 
-    private ActionBar actionBar;
+    private Toolbar termToolbar;
+    private Menu menu;
 
     private TermListViewModel termListViewModel;
     private CourseListViewModel courseListViewModel;
@@ -67,6 +58,7 @@ public class TermActivity extends AppCompatActivity {
     private EditText newTermName;
 
     private TextView termName;
+    private TextView yearName;
     private TextView termGpa;
     private TextView termNumCredits;
 
@@ -82,16 +74,6 @@ public class TermActivity extends AppCompatActivity {
     private EditText newCourseCredits;
     private CheckBox newCourseAffectsGPA;
 
-    private int NUM_SLIDES = 5;
-
-    private ViewPager termsPager;
-    private ScrollView pagerScrollView;
-
-    private PagerAdapter slideshowPagerAdapter;
-    private Field slideshowScroller;
-
-    private int currentSlide;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,28 +85,20 @@ public class TermActivity extends AppCompatActivity {
         term = (Term) intent.getSerializableExtra(SELECTED_TERM_KEY);
         year = (Year) intent.getSerializableExtra(CORRESPONDING_YEAR_KEY);
 
-        actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle("");
-        }
-
-        setUpTermsPager();
+        setUpToolbar();
         setUpSummary();
         setUpCoursesArea();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.menu_term, menu);
+        this.menu = menu;
+        getMenuInflater().inflate(R.menu.menu_term, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
-        super.onOptionsItemSelected(item);
-
         switch (item.getItemId()) {
             case R.id.edit_term: {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -280,11 +254,16 @@ public class TermActivity extends AppCompatActivity {
     }
 
     private void setUpSummary() {
+        termName = findViewById(R.id.textview_term_name);
+        // yearName = findViewById(R.id.textview_year_name);
+
+        termName.setText(term.getName());
+        // yearName.setText(year.getName());
     }
 
-    private void updateSummary(boolean allCoursesHaveGrades) {
+    private void updateSummary(boolean gradesExist) {
         termGpa.setText(gpaFormatter.format(term.getGpa()));
-        if (!allCoursesHaveGrades) {
+        if (!gradesExist) {
             termGpa.setAlpha(0.5f);
         } else {
             termGpa.setAlpha(1.0f);
@@ -297,53 +276,28 @@ public class TermActivity extends AppCompatActivity {
         }
     }
 
-    private void setUpTermsPager() {
-        termsPager = (ViewPager) findViewById(R.id.pager_slideshow);
-        termsPager.setPageTransformer(true, new ZoomOutPageTransformer());
-        slideshowPagerAdapter = new SlidePagerAdapter(getSupportFragmentManager());
-        termsPager.setAdapter(slideshowPagerAdapter);
+    private void setUpToolbar() {
+        termToolbar = findViewById(R.id.action_bar_term);
+        termToolbar.inflateMenu(R.menu.menu_term);
 
-        View slideLayout = LayoutInflater.from(this).inflate(R.layout.layout_term_page, null);
+        setSupportActionBar(termToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        pagerScrollView = (ScrollView) slideLayout.findViewById(R.id.pager_content);
+/*        appBarLayout = findViewById(R.id.overview_appbar_container);
 
-        gpaFormatter = new DecimalFormat("0.000 'GPA'");
-        numCreditsFormatter = new DecimalFormat("0.#");
-
-        termName = (TextView) pagerScrollView.findViewById(R.id.textview_name);
-        termGpa = (TextView) pagerScrollView.findViewById(R.id.textview_gpa);
-        termNumCredits = (TextView) pagerScrollView.findViewById(R.id.textview_num_credits);
-
-        termName.setText(term.getName());
-        termGpa.setText(gpaFormatter.format(term.getGpa()));
-        termNumCredits.setText(numCreditsFormatter.format(term.getTotalNumCredits()));
-
-        termsPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                currentSlide = position;
-            }
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            int scrollRange = -1;
 
             @Override
-            public void onPageSelected(int position) {
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                if (scrollRange == -1) {
+                    scrollRange = appBarLayout.getTotalScrollRange();
+                }
 
+                int maxScroll = appBarLayout.getTotalScrollRange();
+                float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.8));
             }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
-
-        try {
-            slideshowScroller = ViewPager.class.getDeclaredField("mScroller");
-            slideshowScroller.setAccessible(true);
-            slideshowScroller.set(termsPager, new CustomScroller(this, new AccelerateDecelerateInterpolator(), 500));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        currentSlide = 0;
+        });*/
     }
 
     private void setUpCoursesArea() {
@@ -496,22 +450,6 @@ public class TermActivity extends AppCompatActivity {
                     });
                 }
             });
-        }
-    }
-
-    private class SlidePagerAdapter extends FragmentStatePagerAdapter {
-        SlidePagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return new SlidePageFragment();
-        }
-
-        @Override
-        public int getCount() {
-            return NUM_SLIDES;
         }
     }
 }

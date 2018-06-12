@@ -3,10 +3,9 @@
     <color name="colorPrimary">#42a5f5</color>
     <color name="colorPrimaryDark">#1565c0</color>
     <color name="colorAccent">#7c4dff</color>
-    <color name="colorAccentLight">#b388ff</color>
-    <color name="backgroundColorPrimary">#f0f0f0</color>
-    <color name="backgroundColorDark">#e8e8e8</color>
+    <color name="colorAccentLight">#d1c4e9</color>
+    <color name="backgroundColorPrimary">#eeeeee</color>
+    <color name="backgroundColorDark">#cfd8dc</color>
     <color name="backgroundTextColor">#cccccc</color>
     <color name="backgroundTextColorDark">#aaaaaa</color>
-    <color name="statusBarPrimaryColor">#444444</color>
 </resources>
