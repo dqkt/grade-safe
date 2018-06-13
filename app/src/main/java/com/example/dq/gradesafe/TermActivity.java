@@ -5,8 +5,10 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
@@ -25,6 +27,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -46,6 +49,11 @@ public class TermActivity extends AppCompatActivity {
 
     private Toolbar termToolbar;
     private Menu menu;
+    private AppBarLayout appBarLayout;
+
+    private TextView title;
+    private LinearLayout titleContainer;
+    private boolean isTheTitleVisible;
 
     private TermListViewModel termListViewModel;
     private CourseListViewModel courseListViewModel;
@@ -94,7 +102,7 @@ public class TermActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu){
         this.menu = menu;
         getMenuInflater().inflate(R.menu.menu_term, menu);
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -228,6 +236,10 @@ public class TermActivity extends AppCompatActivity {
                 });
                 return true;
             }
+            case R.id.add_course: {
+                addCourse();
+                return true;
+            }
             case android.R.id.home: {
                 onBackPressed();
                 return true;
@@ -254,20 +266,22 @@ public class TermActivity extends AppCompatActivity {
     }
 
     private void setUpSummary() {
-        termName = findViewById(R.id.textview_term_name);
+        // termName = findViewById(R.id.textview_term_name);
         // yearName = findViewById(R.id.textview_year_name);
 
-        termName.setText(term.getName());
+        // termName.setText(term.getName());
         // yearName.setText(year.getName());
+
+        termGpa = findViewById(R.id.textview_term_gpa);
+        termNumCredits = findViewById(R.id.textview_term_num_credits);
+
+        gpaFormatter = new DecimalFormat("0.000");
+        numCreditsFormatter = new DecimalFormat("0.#");
     }
 
     private void updateSummary(boolean gradesExist) {
         termGpa.setText(gpaFormatter.format(term.getGpa()));
-        if (!gradesExist) {
-            termGpa.setAlpha(0.5f);
-        } else {
-            termGpa.setAlpha(1.0f);
-        }
+
         double totalNumCredits = term.getTotalNumCredits();
         if (totalNumCredits == 1) {
             termNumCredits.setText("1 credit");
@@ -277,13 +291,21 @@ public class TermActivity extends AppCompatActivity {
     }
 
     private void setUpToolbar() {
+        title = findViewById(R.id.term_title);
+        titleContainer = findViewById(R.id.term_expanded_title);
+        isTheTitleVisible = false;
+
+        setTitle("");
+        title.setText(term.getName());
+
         termToolbar = findViewById(R.id.action_bar_term);
         termToolbar.inflateMenu(R.menu.menu_term);
 
         setSupportActionBar(termToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-/*        appBarLayout = findViewById(R.id.overview_appbar_container);
+        appBarLayout = findViewById(R.id.term_appbar_container);
 
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             int scrollRange = -1;
@@ -295,9 +317,21 @@ public class TermActivity extends AppCompatActivity {
                 }
 
                 int maxScroll = appBarLayout.getTotalScrollRange();
-                float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.8));
+                float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.6));
+
+                titleContainer.setAlpha(1 - percentage);
             }
-        });*/
+        });
+    }
+
+    public static void startAlphaAnimation(View v, long duration, int visibility) {
+        AlphaAnimation alphaAnimation = (visibility == View.VISIBLE)
+                ? new AlphaAnimation(0f, 1f)
+                : new AlphaAnimation(1f, 0f);
+
+        alphaAnimation.setDuration(duration);
+        alphaAnimation.setFillAfter(true);
+        v.startAnimation(alphaAnimation);
     }
 
     private void setUpCoursesArea() {
@@ -321,7 +355,7 @@ public class TermActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                // updateSummary(gradesExist);
+                updateSummary(gradesExist);
             }
         };
         courseListViewModel.getCoursesInTerm(term).observe(TermActivity.this, courseListObserver);
@@ -385,71 +419,75 @@ public class TermActivity extends AppCompatActivity {
             addCourseButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(TermActivity.this);
-
-                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
-
-                    builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                    });
-
-                    LayoutInflater inflater = (LayoutInflater) TermActivity.this.getSystemService(OverviewActivity.LAYOUT_INFLATER_SERVICE);
-                    View view = inflater.inflate(R.layout.dialog_add_course, null);
-
-                    addCourseDialogLayout = (LinearLayout) view.findViewById(R.id.layout_add_course);
-
-                    final TextInputLayout courseNameLayout = (TextInputLayout) addCourseDialogLayout.findViewById(R.id.textinput_course_name);
-                    final TextInputLayout courseCreditsLayout = (TextInputLayout) addCourseDialogLayout.findViewById(R.id.textinput_num_credits);
-                    courseNameLayout.setErrorEnabled(true);
-                    courseCreditsLayout.setErrorEnabled(true);
-                    newCourseName = (TextInputEditText) courseNameLayout.findViewById(R.id.edittext_course_name);
-                    newCourseCredits = (TextInputEditText) courseCreditsLayout.findViewById(R.id.edittext_num_credits);
-                    newCourseAffectsGPA = (CheckBox) view.findViewById(R.id.checkbox_affects_gpa);
-                    builder.setView(addCourseDialogLayout);
-
-                    final AlertDialog dialog = builder.create();
-
-                    dialog.setTitle("Add a course");
-                    dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-                    dialog.setCanceledOnTouchOutside(true);
-
-                    dialog.show();
-
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            String courseName = newCourseName.getText().toString().replaceAll("^\\s+|\\s+$", "");
-                            String courseCredits = newCourseCredits.getText().toString().replaceAll("^\\s+|\\s+$", "");
-                            boolean countsTowardGPA = newCourseAffectsGPA.isChecked();
-                            boolean valid = true;
-
-                            if (courseName.isEmpty()) {
-                                valid = false;
-                                newCourseName.setError("Name cannot be blank");
-                            }
-
-                            if (courseCredits.isEmpty()) {
-                                valid = false;
-                                newCourseCredits.setError("Empty field");
-                            }
-
-                            if (valid) {
-                                double numCourseCredits = Double.parseDouble(courseCredits);
-                                Course newCourse = new Course(courseName, numCourseCredits, countsTowardGPA, term.getTermID());
-                                newCourse.setListIndex(courseRecyclerViewAdapter.getItemCount());
-                                courseListViewModel.addCourse(newCourse);
-                                dialog.dismiss();
-                            }
-                        }
-                    });
+                    addCourse();
                 }
             });
         }
+    }
+
+    private void addCourse() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(TermActivity.this);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+
+        LayoutInflater inflater = (LayoutInflater) TermActivity.this.getSystemService(OverviewActivity.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.dialog_add_course, null);
+
+        addCourseDialogLayout = (LinearLayout) view.findViewById(R.id.layout_add_course);
+
+        final TextInputLayout courseNameLayout = (TextInputLayout) addCourseDialogLayout.findViewById(R.id.textinput_course_name);
+        final TextInputLayout courseCreditsLayout = (TextInputLayout) addCourseDialogLayout.findViewById(R.id.textinput_num_credits);
+        courseNameLayout.setErrorEnabled(true);
+        courseCreditsLayout.setErrorEnabled(true);
+        newCourseName = (TextInputEditText) courseNameLayout.findViewById(R.id.edittext_course_name);
+        newCourseCredits = (TextInputEditText) courseCreditsLayout.findViewById(R.id.edittext_num_credits);
+        newCourseAffectsGPA = (CheckBox) view.findViewById(R.id.checkbox_affects_gpa);
+        builder.setView(addCourseDialogLayout);
+
+        final AlertDialog dialog = builder.create();
+
+        dialog.setTitle("Add a course");
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        dialog.setCanceledOnTouchOutside(true);
+
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String courseName = newCourseName.getText().toString().replaceAll("^\\s+|\\s+$", "");
+                String courseCredits = newCourseCredits.getText().toString().replaceAll("^\\s+|\\s+$", "");
+                boolean countsTowardGPA = newCourseAffectsGPA.isChecked();
+                boolean valid = true;
+
+                if (courseName.isEmpty()) {
+                    valid = false;
+                    newCourseName.setError("Name cannot be blank");
+                }
+
+                if (courseCredits.isEmpty()) {
+                    valid = false;
+                    newCourseCredits.setError("Empty field");
+                }
+
+                if (valid) {
+                    double numCourseCredits = Double.parseDouble(courseCredits);
+                    Course newCourse = new Course(courseName, numCourseCredits, countsTowardGPA, term.getTermID());
+                    newCourse.setListIndex(courseRecyclerViewAdapter.getItemCount());
+                    courseListViewModel.addCourse(newCourse);
+                    dialog.dismiss();
+                }
+            }
+        });
     }
 }

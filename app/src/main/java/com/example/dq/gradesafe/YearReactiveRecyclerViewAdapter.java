@@ -116,7 +116,7 @@ public class YearReactiveRecyclerViewAdapter extends ReactiveRecyclerViewAdapter
 
     @Override
     public YearViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final RelativeLayout yearLayout = (RelativeLayout) inflater.inflate(R.layout.layout_year, parent, false);
+        final LinearLayout yearLayout = (LinearLayout) inflater.inflate(R.layout.layout_year, parent, false);
         YearViewHolder yearViewHolder = new YearViewHolder(yearLayout, context, reactiveRecyclerView, termListViewModel);
         yearViewHolder.setYearActionCallback(yearActionCallback);
         return yearViewHolder;
@@ -154,7 +154,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
 
     public Year year;
 
-    public RelativeLayout overallLayout;
+    public LinearLayout overallLayout;
     public LinearLayout regularLayout;
     public TextView name;
 
@@ -188,7 +188,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
 
         this.context = context;
 
-        overallLayout = (RelativeLayout) view;
+        overallLayout = (LinearLayout) view;
         regularLayout = (LinearLayout) view.findViewById(R.id.layout_regular);
         name = (TextView) regularLayout.findViewById(R.id.textview_name);
         termRecyclerView = (RecyclerView) regularLayout.findViewById(R.id.recyclerview_terms);

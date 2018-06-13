@@ -15,4 +15,11 @@
         app:showAsAction="never|withText"
         android:title="Delete term"
         android:titleCondensed="Delete"/>
+
+    <item
+        android:id="@+id/add_course"
+        android:icon="@drawable/ic_item_add"
+        app:showAsAction="never|withText"
+        android:title="Add course"
+        android:titleCondensed="Add course"/>
 </menu>

@@ -79,7 +79,7 @@ public class OverviewActivity extends AppCompatActivity
     private TextView overallGpa;
     private TextView overallNumCredits;
 
-    private boolean isTheTitleVisible = false;
+    private boolean isTheTitleVisible;
 
     private DrawerLayout mainDrawer;
     private ActionBarDrawerToggle mainDrawerToggle;
@@ -130,6 +130,8 @@ public class OverviewActivity extends AppCompatActivity
     }
 
     private void setUpToolbar() {
+        isTheTitleVisible = false;
+
         overviewToolbar = findViewById(R.id.action_bar_overview);
         overviewToolbar.inflateMenu(R.menu.menu_overview);
 
@@ -229,16 +231,15 @@ public class OverviewActivity extends AppCompatActivity
         if (overallTotalNumCredits != 0) {
             String titleText = gpaFormatter.format(contributionTowardGpa / overallTotalNumCredits);
             overallGpa.setText(titleText);
-            title.setText(titleText);
         } else {
             overallGpa.setText("0.000 GPA");
-            title.setText("0.000 GPA");
         }
         if (overallTotalNumCredits == 1) {
             overallNumCredits.setText("1 credit");
         } else {
             overallNumCredits.setText(String.valueOf(creditsFormatter.format(overallTotalNumCredits) + " credits"));
         }
+        title.setText("Career Overview");
     }
 
     private void setUpYearsArea() {

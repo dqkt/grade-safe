@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -212,14 +213,20 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
                 holder.numCredits.setText(String.valueOf(numCreditsFormatter.format(numCredits) + " credits"));
             }
             String overallGrade;
+            final float scale = context.getResources().getDisplayMetrics().density;
+            int pixels;
             if ((overallGrade = currentCourse.getOverallGrade()) != null) {
                 holder.overallGrade.setText(overallGrade);
                 holder.overallScore.setText(scoreFormatter.format(currentCourse.getOverallScore()));
-                holder.resultsLayout.setAlpha(1.0f);
+                pixels = (int) (50 * scale + 0.5f);
+                holder.overallGrade.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
+                holder.overallScore.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
             } else {
                 holder.overallGrade.setText("");
                 holder.overallScore.setText("");
-                holder.resultsLayout.setAlpha(0.5f);
+                pixels = (int) (10 * scale + 0.5f);
+                holder.overallGrade.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
+                holder.overallScore.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
             }
         } else {
             CoursesHeader coursesHeader = (CoursesHeader) holder;
@@ -250,7 +257,7 @@ class CourseViewHolder extends RecyclerView.ViewHolder {
     public TextView name;
     public TextView fullName;
     public TextView numCredits;
-    public RelativeLayout resultsLayout;
+    public LinearLayout resultsLayout;
     public TextView overallScore;
     public TextView overallGrade;
 
@@ -268,7 +275,7 @@ class CourseViewHolder extends RecyclerView.ViewHolder {
         name = (TextView) overallLayout.findViewById(R.id.textview_name);
         fullName = (TextView) overallLayout.findViewById(R.id.textview_full_name);
         numCredits = (TextView) overallLayout.findViewById(R.id.textview_num_credits);
-        resultsLayout = (RelativeLayout) overallLayout.findViewById(R.id.layout_results);
+        resultsLayout = (LinearLayout) overallLayout.findViewById(R.id.layout_results);
         overallScore = (TextView) overallLayout.findViewById(R.id.textview_score);
         overallGrade = (TextView) overallLayout.findViewById(R.id.textview_grade);
 
