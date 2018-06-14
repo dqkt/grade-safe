@@ -37,7 +37,7 @@ public class Course implements Serializable {
     private boolean countsTowardGPA;
 
     @Ignore
-    List<Assignment> assignments;
+    private List<Assignment> assignments;
 
     private double overallScore;
     private String overallGrade;
@@ -76,8 +76,8 @@ public class Course implements Serializable {
         this.fullName = fullName;
     }
 
-    double getNumCredits() { return numCredits; }
-    public void setNumCredits(int numCredits) { this.numCredits = numCredits; }
+    public double getNumCredits() { return numCredits; }
+    public void setNumCredits(double numCredits) { this.numCredits = numCredits; }
 
     public boolean countsTowardGPA() {
         return countsTowardGPA;
@@ -123,7 +123,11 @@ public class Course implements Serializable {
     }
 
     public void updateOverallGrade(GradingScale gradingScale) {
-        overallGrade = gradingScale.getScoreRange(overallScore).getGrade();
+        if (assignments != null && !assignments.isEmpty()) {
+            overallGrade = gradingScale.getScoreRange(overallScore).getGrade();
+        } else {
+            overallGrade = null;
+        }
     }
 
     public int getTermID() {

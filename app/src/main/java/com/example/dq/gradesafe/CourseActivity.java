@@ -71,6 +71,7 @@ public class CourseActivity extends AppCompatActivity {
     private TextView courseScore;
 
     private DecimalFormat scoreFormatter;
+    private DecimalFormat numCreditsFormatter;
 
     private RecyclerView assignmentRecyclerView;
     private AssignmentRecyclerViewAdapter assignmentRecyclerViewAdapter;
@@ -134,10 +135,12 @@ public class CourseActivity extends AppCompatActivity {
 
                 final TextInputLayout newCourseNameLayout = (TextInputLayout) editCourseDialogLayout.findViewById(R.id.textinput_course_name);
                 final TextInputLayout newNumCourseCreditsLayout = (TextInputLayout) editCourseDialogLayout.findViewById(R.id.textinput_num_credits);
+                final CheckBox countsTowardGpaCheckBox = (CheckBox) view.findViewById(R.id.checkbox_affects_gpa);
                 newCourseName = (TextInputEditText) newCourseNameLayout.findViewById(R.id.edittext_course_name);
                 newNumCourseCredits = (TextInputEditText) newNumCourseCreditsLayout.findViewById(R.id.edittext_num_credits);
                 newCourseName.setText(courseName);
-                newNumCourseCredits.setText(String.valueOf(numCourseCredits));
+                newNumCourseCredits.setText(numCreditsFormatter.format(numCourseCredits));
+                countsTowardGpaCheckBox.setChecked(course.countsTowardGPA());
                 builder.setView(editCourseDialogLayout);
 
                 final AlertDialog dialog = builder.create();
@@ -160,6 +163,8 @@ public class CourseActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         String courseName = newCourseName.getText().toString().replaceAll("^\\s+|\\s+$", "");
+                        double numCourseCredits = Double.parseDouble(newNumCourseCredits.getText().toString());
+                        boolean countsTowardGpa = countsTowardGpaCheckBox.isChecked();
                         boolean valid = true;
 
                         if (courseName.isEmpty()) {
@@ -168,7 +173,9 @@ public class CourseActivity extends AppCompatActivity {
 
                         if (valid) {
                             course.setName(courseName);
-                            setTitle(courseName);
+                            course.setNumCredits(numCourseCredits);
+                            course.setCountsTowardGPA(countsTowardGpa);
+                            courseToolbar.setTitle(courseName);
                             courseListViewModel.updateCourse(course);
                             dialog.dismiss();
                         }
@@ -281,6 +288,7 @@ public class CourseActivity extends AppCompatActivity {
         courseScore = findViewById(R.id.textview_course_score);
 
         scoreFormatter = new DecimalFormat("0.00");
+        numCreditsFormatter = new DecimalFormat("0");
     }
 
     private void updateSummary(boolean scoresExist) {

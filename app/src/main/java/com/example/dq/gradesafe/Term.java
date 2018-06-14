@@ -34,7 +34,7 @@ public class Term implements Serializable {
     private String name;
 
     @Ignore
-    List<Course> courses;
+    private List<Course> courses;
 
     private double totalNumCredits;
     private double gpa;
@@ -98,20 +98,20 @@ public class Term implements Serializable {
     }
 
     public void updateGpa(GradingScale gradingScale) {
-        gpa = totalNumCredits != 0 ? getTotalContributionTowardGpa(gradingScale) / totalNumCredits : 0;
-    }
-
-    public double getTotalContributionTowardGpa(GradingScale gradingScale) {
         double contribution = 0;
+        double totalNumCreditsContributing = 0;
         if (courses != null) {
             ScoreRange scoreRange;
+            double numCredits;
             for (Course course : courses) {
-                if ((scoreRange = gradingScale.getScoreRange(course.getOverallScore())) != null) {
-                    contribution += course.getNumCredits() * scoreRange.getContribution();
+                if (course.countsTowardGPA() && (scoreRange = gradingScale.getScoreRange(course.getOverallScore())) != null) {
+                    numCredits = course.getNumCredits();
+                    contribution += numCredits * scoreRange.getContribution();
+                    totalNumCreditsContributing += numCredits;
                 }
             }
         }
-        return contribution;
+        gpa = totalNumCreditsContributing != 0 ? contribution / totalNumCreditsContributing : 0;
     }
 
     public int getYearID() {

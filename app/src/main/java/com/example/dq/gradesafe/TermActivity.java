@@ -168,7 +168,7 @@ public class TermActivity extends AppCompatActivity {
 
                         if (valid) {
                             term.setName(termName);
-                            setTitle(termName);
+                            termToolbar.setTitle(termName);
                             termListViewModel.updateTerm(term);
                             dialog.dismiss();
                         }

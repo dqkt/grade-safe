@@ -223,19 +223,22 @@ public class OverviewActivity extends AppCompatActivity
 
     private void updateOverallSummary(List<Course> courses) {
         double contributionTowardGpa = 0;
-        double overallTotalNumCredits = 0;
+        double overallTotalNumCredits = 0, overallTotalNumCreditsContributing = 0;
         GradingScale gradingScale = GradingScale.createStandardGradingScale();
         double numCredits;
         if (courses != null) {
             for (Course course : courses) {
                 numCredits = course.getNumCredits();
-                contributionTowardGpa += gradingScale.getScoreRange(course.getOverallScore()).getContribution() * numCredits;
+                if (course.countsTowardGPA()) {
+                    contributionTowardGpa += gradingScale.getScoreRange(course.getOverallScore()).getContribution() * numCredits;
+                    overallTotalNumCreditsContributing += numCredits;
+                }
                 overallTotalNumCredits += numCredits;
             }
         }
 
         if (overallTotalNumCredits != 0) {
-            String titleText = gpaFormatter.format(contributionTowardGpa / overallTotalNumCredits);
+            String titleText = gpaFormatter.format(contributionTowardGpa / overallTotalNumCreditsContributing);
             overallGpa.setText(titleText);
         } else {
             overallGpa.setText("0.000 GPA");
