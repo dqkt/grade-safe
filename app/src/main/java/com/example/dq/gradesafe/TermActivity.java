@@ -78,6 +78,7 @@ public class TermActivity extends AppCompatActivity {
 
     private GradingScale gradingScale;
 
+    private TextView noCoursesView;
     private RecyclerView courseRecyclerView;
     private CourseRecyclerViewAdapter courseRecyclerViewAdapter;
 
@@ -168,7 +169,7 @@ public class TermActivity extends AppCompatActivity {
 
                         if (valid) {
                             term.setName(termName);
-                            termToolbar.setTitle(termName);
+                            title.setText(termName);
                             termListViewModel.updateTerm(term);
                             dialog.dismiss();
                         }
@@ -285,6 +286,14 @@ public class TermActivity extends AppCompatActivity {
     }
 
     private void updateSummary(boolean gradesExist) {
+        if (courseRecyclerViewAdapter.getItemCount() > 0) {
+            courseRecyclerView.setVisibility(View.VISIBLE);
+            noCoursesView.setVisibility(View.GONE);
+        } else {
+            courseRecyclerView.setVisibility(View.GONE);
+            noCoursesView.setVisibility(View.VISIBLE);
+        }
+
         termGpa.setText(gpaFormatter.format(term.getGpa()));
 
         double totalNumCredits = term.getTotalNumCredits();
@@ -330,6 +339,7 @@ public class TermActivity extends AppCompatActivity {
     }
 
     private void setUpCoursesArea() {
+        noCoursesView = (TextView) findViewById(R.id.textview_no_courses);
         courseRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_courses);
 
         gradingScaleListViewModel = ViewModelProviders.of(this).get(GradingScaleListViewModel.class);

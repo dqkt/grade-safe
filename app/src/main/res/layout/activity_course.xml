@@ -125,14 +125,32 @@
                         android:text="Assignments"/>
                 </RelativeLayout>
 
-                <android.support.v7.widget.RecyclerView
-                    android:focusable="false"
-                    android:clipToPadding="false"
-                    android:background="@android:color/transparent"
-                    android:layout_marginTop="8dp"
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/recyclerview_assignments"/>
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp"
+                        android:text="You haven't added any assignments to this course."
+                        android:alpha="0.5"
+                        android:id="@+id/textview_no_assignments"/>
+
+                    <android.support.v7.widget.RecyclerView
+                        android:focusable="false"
+                        android:clipToPadding="false"
+                        android:background="@android:color/transparent"
+                        android:layout_marginTop="8dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:id="@+id/recyclerview_assignments"/>
+                </FrameLayout>
             </LinearLayout>
 
             <android.support.design.widget.FloatingActionButton

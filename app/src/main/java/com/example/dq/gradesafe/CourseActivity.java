@@ -73,6 +73,7 @@ public class CourseActivity extends AppCompatActivity {
     private DecimalFormat scoreFormatter;
     private DecimalFormat numCreditsFormatter;
 
+    private TextView noAssignmentsView;
     private RecyclerView assignmentRecyclerView;
     private AssignmentRecyclerViewAdapter assignmentRecyclerViewAdapter;
 
@@ -97,7 +98,7 @@ public class CourseActivity extends AppCompatActivity {
 
         setUpToolbar();
         setUpSummary();
-        setUpCoursesArea();
+        setUpAssignmentsArea();
     }
 
     @Override
@@ -175,7 +176,7 @@ public class CourseActivity extends AppCompatActivity {
                             course.setName(courseName);
                             course.setNumCredits(numCourseCredits);
                             course.setCountsTowardGPA(countsTowardGpa);
-                            courseToolbar.setTitle(courseName);
+                            title.setText(courseName);
                             courseListViewModel.updateCourse(course);
                             dialog.dismiss();
                         }
@@ -292,6 +293,14 @@ public class CourseActivity extends AppCompatActivity {
     }
 
     private void updateSummary(boolean scoresExist) {
+        if (assignmentRecyclerViewAdapter.getItemCount() > 0) {
+            assignmentRecyclerView.setVisibility(View.VISIBLE);
+            noAssignmentsView.setVisibility(View.GONE);
+        } else {
+            assignmentRecyclerView.setVisibility(View.GONE);
+            noAssignmentsView.setVisibility(View.VISIBLE);
+        }
+
         course.updateOverallScore();
         course.updateOverallGrade(GradingScale.createStandardGradingScale());
         courseGrade.setText(course.getOverallGrade());
@@ -332,7 +341,8 @@ public class CourseActivity extends AppCompatActivity {
         });
     }
 
-    private void setUpCoursesArea() {
+    private void setUpAssignmentsArea() {
+        noAssignmentsView = (TextView) findViewById(R.id.textview_no_assignments);
         assignmentRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_assignments);
 
         assignmentListViewModel = ViewModelProviders.of(this).get(AssignmentListViewModel.class);

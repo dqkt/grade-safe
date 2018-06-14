@@ -131,14 +131,32 @@
                         android:text="Courses"/>
                 </RelativeLayout>
 
-                <android.support.v7.widget.RecyclerView
-                    android:focusable="false"
-                    android:clipToPadding="false"
-                    android:background="@android:color/transparent"
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:paddingTop="16dp"
-                    android:id="@+id/recyclerview_courses"/>
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp"
+                        android:text="You haven't added any courses to this term."
+                        android:alpha="0.5"
+                        android:id="@+id/textview_no_courses"/>
+
+                    <android.support.v7.widget.RecyclerView
+                        android:focusable="false"
+                        android:clipToPadding="false"
+                        android:background="@android:color/transparent"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:paddingTop="16dp"
+                        android:id="@+id/recyclerview_courses"/>
+                </FrameLayout>
             </LinearLayout>
 
             <android.support.design.widget.FloatingActionButton

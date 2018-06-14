@@ -43,6 +43,8 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -64,6 +66,7 @@ public class OverviewActivity extends AppCompatActivity
     private CourseListViewModel courseListViewModel;
     private Observer<List<Course>> courseListObserver;
 
+    private TextView noYearsView;
     private ReactiveRecyclerView yearRecyclerView;
     private YearReactiveRecyclerViewAdapter yearRecyclerViewAdapter;
 
@@ -222,6 +225,14 @@ public class OverviewActivity extends AppCompatActivity
     }
 
     private void updateOverallSummary(List<Course> courses) {
+        if (yearRecyclerViewAdapter.getItemCount() > 0) {
+            yearRecyclerView.setVisibility(View.VISIBLE);
+            noYearsView.setVisibility(View.GONE);
+        } else {
+            yearRecyclerView.setVisibility(View.GONE);
+            noYearsView.setVisibility(View.VISIBLE);
+        }
+
         double contributionTowardGpa = 0;
         double overallTotalNumCredits = 0, overallTotalNumCreditsContributing = 0;
         GradingScale gradingScale = GradingScale.createStandardGradingScale();
@@ -252,6 +263,7 @@ public class OverviewActivity extends AppCompatActivity
     }
 
     private void setUpYearsArea() {
+        noYearsView = (TextView) findViewById(R.id.textview_no_years);
         yearRecyclerView = (ReactiveRecyclerView) findViewById(R.id.recyclerview_years);
 
         yearListViewModel = ViewModelProviders.of(this).get(YearListViewModel.class);

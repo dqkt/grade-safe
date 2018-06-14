@@ -113,6 +113,14 @@ public class GradingScale implements Serializable {
         return standardGradingScale;
     }
 
+    public static GradingScale createPassFailGradingScale() {
+        GradingScale passFailGradingScale = new GradingScale("Pass/Fail Grading Scale");
+        passFailGradingScale.addScoreRange(new ScoreRange("F", 0, 70, 0.0));
+        passFailGradingScale.addScoreRange(new ScoreRange("P", 70, Double.MAX_VALUE, 4.0));
+
+        return passFailGradingScale;
+    }
+
     @Dao
     public interface GradingScaleDao {
         @Insert(onConflict = OnConflictStrategy.IGNORE)
