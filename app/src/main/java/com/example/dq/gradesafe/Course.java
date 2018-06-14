@@ -13,6 +13,7 @@ import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -54,16 +55,6 @@ public class Course implements Serializable {
         this.termID = termID;
     }
 
-    protected Course(Parcel in) {
-        name = in.readString();
-        fullName = in.readString();
-        numCredits = in.readDouble();
-        countsTowardGPA = in.readByte() != 0x00;
-        overallScore = in.readDouble();
-        overallGrade = in.readString();
-        termID = in.readInt();
-    }
-
     public int getCourseID() {
         return courseID;
     }
@@ -97,6 +88,7 @@ public class Course implements Serializable {
 
     public void setAssignments(List<Assignment> assignments) {
         this.assignments = assignments;
+        updateOverallScore();
     }
 
     public double getOverallScore() {
@@ -107,7 +99,20 @@ public class Course implements Serializable {
     }
 
     public void updateOverallScore() {
-        // TODO: Implementation
+        overallScore = 0;
+        double totalWeight = 0;
+        double weight;
+        for (Assignment assignment : assignments) {
+            if (assignment.isComplete()) {
+                weight = assignment.getWeight();
+                totalWeight += weight;
+                overallScore += assignment.getScoreNumerator() / assignment.getScoreDenominator() * weight;
+            }
+        }
+        if (totalWeight != 0) {
+            overallScore /= Math.min(totalWeight, 100);
+        }
+        overallScore *= 100;
     }
 
     String getOverallGrade() {
@@ -117,13 +122,8 @@ public class Course implements Serializable {
         this.overallGrade = overallGrade;
     }
 
-    public void updateOverallGrade() {
-        // TODO: Implementation
-    }
-
-    void setUpDefaults() {
-        overallScore = 1;
-        overallGrade = "A";
+    public void updateOverallGrade(GradingScale gradingScale) {
+        overallGrade = gradingScale.getScoreRange(overallScore).getGrade();
     }
 
     public int getTermID() {

@@ -56,10 +56,13 @@ public class OverviewActivity extends AppCompatActivity
     private static final float PERCENTAGE_TO_SHOW_TITLE_AT_TOOLBAR  = 0.8f;
     private static final int ALPHA_ANIMATIONS_DURATION              = 200;
 
+    private List<GradingScale> gradingScales;
+
+    private GradingScaleListViewModel gradingScaleListViewModel;
     private YearListViewModel yearListViewModel;
     private Observer<List<Year>> yearListObserver;
-    private TermListViewModel termListViewModel;
-    private Observer<List<Term>> termListObserver;
+    private CourseListViewModel courseListViewModel;
+    private Observer<List<Course>> courseListObserver;
 
     private ReactiveRecyclerView yearRecyclerView;
     private YearReactiveRecyclerViewAdapter yearRecyclerViewAdapter;
@@ -218,13 +221,16 @@ public class OverviewActivity extends AppCompatActivity
         startAlphaAnimation(title, 0, View.INVISIBLE);
     }
 
-    private void updateOverallSummary(List<Term> terms) {
+    private void updateOverallSummary(List<Course> courses) {
         double contributionTowardGpa = 0;
         double overallTotalNumCredits = 0;
-        if (terms != null) {
-            for (Term term : terms) {
-                contributionTowardGpa += term.getTotalContributionTowardGpa();
-                overallTotalNumCredits += term.getTotalNumCredits();
+        GradingScale gradingScale = GradingScale.createStandardGradingScale();
+        double numCredits;
+        if (courses != null) {
+            for (Course course : courses) {
+                numCredits = course.getNumCredits();
+                contributionTowardGpa += gradingScale.getScoreRange(course.getOverallScore()).getContribution() * numCredits;
+                overallTotalNumCredits += numCredits;
             }
         }
 
@@ -244,8 +250,18 @@ public class OverviewActivity extends AppCompatActivity
 
     private void setUpYearsArea() {
         yearRecyclerView = (ReactiveRecyclerView) findViewById(R.id.recyclerview_years);
+
         yearListViewModel = ViewModelProviders.of(this).get(YearListViewModel.class);
-        termListViewModel = ViewModelProviders.of(this).get(TermListViewModel.class);
+        courseListViewModel = ViewModelProviders.of(this).get(CourseListViewModel.class);
+        gradingScaleListViewModel = ViewModelProviders.of(this).get(GradingScaleListViewModel.class);
+
+        gradingScaleListViewModel.addGradingScale(GradingScale.createStandardGradingScale());
+        gradingScaleListViewModel.getGradingScaleList().observe(this, new Observer<List<GradingScale>>() {
+            @Override
+            public void onChanged(@Nullable List<GradingScale> gradingScales) {
+                OverviewActivity.this.gradingScales = gradingScales;
+            }
+        });
 
         yearRecyclerViewAdapter = new YearReactiveRecyclerViewAdapter(this, new ArrayList<Year>(), yearRecyclerView, yearListViewModel, this);
         yearRecyclerView.setAdapter(yearRecyclerViewAdapter);
@@ -261,13 +277,13 @@ public class OverviewActivity extends AppCompatActivity
         };
         yearListViewModel.getYearList().observe(this, yearListObserver);
 
-        termListObserver = new Observer<List<Term>>() {
+        courseListObserver = new Observer<List<Course>>() {
             @Override
-            public void onChanged(@Nullable List<Term> terms) {
-                updateOverallSummary(terms);
+            public void onChanged(@Nullable List<Course> courses) {
+                updateOverallSummary(courses);
             }
         };
-        termListViewModel.getTermList().observe(this, termListObserver);
+        courseListViewModel.getCourseList().observe(this, courseListObserver);
 
         addYearButton = (FloatingActionButton) findViewById(R.id.button_add_year);
         addYearButton.setOnClickListener(new View.OnClickListener() {

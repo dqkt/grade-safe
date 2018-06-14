@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 3,
-    "identityHash": "ad8a7914323ca39af58f9b616648ed17",
+    "version": 4,
+    "identityHash": "a972a36f9a6e102b9dec2cc71c450f19",
     "entities": [
       {
         "tableName": "Year",
@@ -38,7 +38,7 @@
       },
       {
         "tableName": "Term",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`termID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `gradingScale` TEXT, `totalNumCredits` REAL NOT NULL, `gpa` REAL NOT NULL, `yearID` INTEGER NOT NULL, `listIndex` INTEGER NOT NULL, FOREIGN KEY(`yearID`) REFERENCES `Year`(`yearID`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`termID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `totalNumCredits` REAL NOT NULL, `gpa` REAL NOT NULL, `yearID` INTEGER NOT NULL, `gradingScaleID` INTEGER NOT NULL, `listIndex` INTEGER NOT NULL, FOREIGN KEY(`yearID`) REFERENCES `Year`(`yearID`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gradingScaleID`) REFERENCES `GradingScale`(`gradingScaleID`) ON UPDATE CASCADE ON DELETE NO ACTION )",
         "fields": [
           {
             "fieldPath": "termID",
@@ -49,12 +49,6 @@
           {
             "fieldPath": "name",
             "columnName": "name",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "gradingScale",
-            "columnName": "gradingScale",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -73,6 +67,12 @@
           {
             "fieldPath": "yearID",
             "columnName": "yearID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gradingScaleID",
+            "columnName": "gradingScaleID",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -100,6 +100,17 @@
             ],
             "referencedColumns": [
               "yearID"
+            ]
+          },
+          {
+            "table": "GradingScale",
+            "onDelete": "NO ACTION",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "gradingScaleID"
+            ],
+            "referencedColumns": [
+              "gradingScaleID"
             ]
           }
         ]
@@ -261,7 +272,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"ad8a7914323ca39af58f9b616648ed17\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"a972a36f9a6e102b9dec2cc71c450f19\")"
     ]
   }
 }

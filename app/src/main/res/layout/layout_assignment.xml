@@ -9,9 +9,9 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="4dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/rectangle"
         android:elevation="2dp">
 
@@ -19,7 +19,7 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="70dp"
+            android:minHeight="40dp"
             android:background="?android:attr/selectableItemBackground">
 
             <RelativeLayout
@@ -39,21 +39,11 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-medium"
                     android:textColor="@android:color/black"
-                    android:textSize="20sp"
+                    android:textSize="14sp"
                     android:maxLines="1"
                     android:ellipsize="end"
                     android:id="@+id/textview_name"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:textSize="12sp"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:id="@+id/textview_full_name"/>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -63,7 +53,7 @@
                     android:textSize="12sp"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:id="@+id/textview_num_credits"/>
+                    android:id="@+id/textview_weight"/>
             </LinearLayout>
 
             <LinearLayout
@@ -88,7 +78,7 @@
                         android:padding="10dp"
                         android:textStyle="bold"
                         android:textColor="@android:color/white"
-                        android:textSize="24sp"
+                        android:textSize="20sp"
                         android:id="@+id/textview_score"/>
 
                     <View
@@ -112,7 +102,7 @@
                         android:padding="10dp"
                         android:textStyle="bold"
                         android:textColor="@android:color/white"
-                        android:textSize="24sp"
+                        android:textSize="20sp"
                         android:id="@+id/textview_grade"/>
 
                     <View

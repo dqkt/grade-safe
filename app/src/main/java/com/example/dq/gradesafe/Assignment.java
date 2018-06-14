@@ -8,6 +8,7 @@ import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -31,23 +32,20 @@ public class Assignment implements Serializable {
     private double scoreNumerator;
     private double scoreDenominator;
 
+    private boolean complete;
+
     private int courseID;
 
-    Assignment(String name, double weight, double scoreNumerator, double scoreDenominator, int courseID) {
+    private int listIndex;
+
+    Assignment(String name, double weight, double scoreNumerator, double scoreDenominator, boolean complete, int courseID) {
         this.name = name;
         this.weight = weight;
         this.scoreNumerator = scoreNumerator;
         this.scoreDenominator = scoreDenominator;
+        this.complete = complete;
 
         this.courseID = courseID;
-    }
-
-    protected Assignment(Parcel in) {
-        name = in.readString();
-        weight = in.readDouble();
-        scoreNumerator = in.readDouble();
-        scoreDenominator = in.readDouble();
-        courseID = in.readInt();
     }
 
     public int getAssignmentID() {
@@ -83,11 +81,26 @@ public class Assignment implements Serializable {
         this.scoreDenominator = scoreDenominator;
     }
 
+    public boolean isComplete() {
+        return complete;
+    }
+
+    public void setComplete(boolean complete) {
+        this.complete = complete;
+    }
+
     public int getCourseID() {
         return courseID;
     }
     public void setCourseID(int courseID) {
         this.courseID = courseID;
+    }
+
+    public int getListIndex() {
+        return listIndex;
+    }
+    public void setListIndex(int listIndex) {
+        this.listIndex = listIndex;
     }
 
     @Dao
@@ -98,7 +111,13 @@ public class Assignment implements Serializable {
         @Delete
         void delete(Assignment assignment);
 
-        @Query("SELECT * FROM assignment WHERE courseID IS :courseID")
+        @Update
+        void update(Assignment assignment);
+
+        @Query("SELECT * FROM assignment ORDER BY listIndex ASC")
+        LiveData<List<Assignment>> getAllAssignments();
+
+        @Query("SELECT * FROM assignment WHERE courseID IS :courseID ORDER BY listIndex ASC")
         LiveData<List<Assignment>> getAllAssignmentsInCourse(int courseID);
     }
 }

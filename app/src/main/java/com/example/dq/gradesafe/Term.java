@@ -23,15 +23,15 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
  * Created by DQ on 3/19/2018.
  */
 
-@Entity(foreignKeys = @ForeignKey(entity = Year.class, parentColumns = "yearID", childColumns = "yearID", onDelete = CASCADE, onUpdate = CASCADE))
-@TypeConverters(GradingScaleConverter.class)
+@Entity(foreignKeys = {
+        @ForeignKey(entity = Year.class, parentColumns = "yearID", childColumns = "yearID", onDelete = CASCADE, onUpdate = CASCADE),
+        @ForeignKey(entity = GradingScale.class, parentColumns = "name", childColumns = "gradingScaleName", onUpdate = CASCADE)
+        })
 public class Term implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
     private int termID;
     private String name;
-
-    private GradingScale gradingScale;
 
     @Ignore
     List<Course> courses;
@@ -40,27 +40,15 @@ public class Term implements Serializable {
     private double gpa;
 
     private int yearID;
+    private String gradingScaleName;
 
     private int listIndex;
 
-    Term(String name, int yearID) {
+    Term(String name, String gradingScaleName, int yearID) {
         this.name = name;
 
+        this.gradingScaleName = gradingScaleName;
         this.yearID = yearID;
-        this.gradingScale = new GradingScale("Standard Grading Scale");
-        this.gradingScale.addScoreRange("A", new ScoreRange(90, Double.MAX_VALUE, 4));
-        this.gradingScale.addScoreRange("B", new ScoreRange(80, 90, 3));
-        this.gradingScale.addScoreRange("C", new ScoreRange(70, 80, 2));
-        this.gradingScale.addScoreRange("D", new ScoreRange(60, 70, 1));
-        this.gradingScale.addScoreRange("F", new ScoreRange(0, 60, 0));
-    }
-
-    protected Term(Parcel in) {
-        name = in.readString();
-        gradingScale = (GradingScale) in.readValue(GradingScale.class.getClassLoader());
-        totalNumCredits = in.readDouble();
-        gpa = in.readDouble();
-        yearID = in.readInt();
     }
 
     public int getTermID() {
@@ -77,10 +65,10 @@ public class Term implements Serializable {
         this.name = name;
     }
 
-    public void setCourses(List<Course> courses) {
+    public void setCourses(List<Course> courses, GradingScale gradingScale) {
         this.courses = courses;
         updateTotalNumCredits();
-        updateGpa();
+        updateGpa(gradingScale);
     }
 
     public double getTotalNumCredits() {
@@ -95,11 +83,11 @@ public class Term implements Serializable {
         this.gpa = gpa;
     }
 
-    public GradingScale getGradingScale() {
-        return gradingScale;
+    public String getGradingScaleName() {
+        return gradingScaleName;
     }
-    public void setGradingScale(GradingScale gradingScale) {
-        this.gradingScale = gradingScale;
+    public void setGradingScale(String gradingScaleName) {
+        this.gradingScaleName = gradingScaleName;
     }
 
     public void updateTotalNumCredits() {
@@ -109,16 +97,16 @@ public class Term implements Serializable {
         }
     }
 
-    public void updateGpa() {
-        gpa = totalNumCredits != 0 ? getTotalContributionTowardGpa() / totalNumCredits : 0;
+    public void updateGpa(GradingScale gradingScale) {
+        gpa = totalNumCredits != 0 ? getTotalContributionTowardGpa(gradingScale) / totalNumCredits : 0;
     }
 
-    public double getTotalContributionTowardGpa() {
+    public double getTotalContributionTowardGpa(GradingScale gradingScale) {
         double contribution = 0;
         if (courses != null) {
             ScoreRange scoreRange;
             for (Course course : courses) {
-                if ((scoreRange = gradingScale.getScoreRange(course.getOverallGrade())) != null) {
+                if ((scoreRange = gradingScale.getScoreRange(course.getOverallScore())) != null) {
                     contribution += course.getNumCredits() * scoreRange.getContribution();
                 }
             }
@@ -141,7 +129,7 @@ public class Term implements Serializable {
     }
 
     public boolean equals(final Term otherTerm) {
-        return Objects.equals(name, otherTerm.name) && gradingScale.equals(otherTerm.gradingScale)
+        return Objects.equals(name, otherTerm.name) && Objects.equals(gradingScaleName, otherTerm.gradingScaleName)
                 && totalNumCredits == otherTerm.totalNumCredits && gpa == otherTerm.gpa;
     }
 

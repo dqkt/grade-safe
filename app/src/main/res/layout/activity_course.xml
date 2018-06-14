@@ -6,7 +6,7 @@
     android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/term_drawer_layout">
+    android:id="@+id/course_drawer_layout">
 
     <LinearLayout
         android:orientation="vertical"
@@ -25,7 +25,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                android:id="@+id/term_appbar_container">
+                android:id="@+id/course_appbar_container">
 
                 <android.support.design.widget.CollapsingToolbarLayout
                     android:background="@color/colorPrimaryDark"
@@ -35,59 +35,53 @@
                     android:fitsSystemWindows="true"
                     app:contentScrim="?android:attr/colorPrimary"
                     app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
-                    android:id="@+id/term_collapsing">
+                    android:id="@+id/course_collapsing">
 
-                    <LinearLayout
-                        android:orientation="vertical"
-                        android:layout_width="match_parent"
+                    <RelativeLayout
+                        android:orientation="horizontal"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center"
                         android:gravity="center"
                         android:minHeight="200dp"
                         android:padding="10dp"
-                        android:id="@+id/term_expanded_title">
-
-                        <LinearLayout
-                            android:orientation="horizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:gravity="center">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@android:color/white"
-                                android:textSize="64sp"
-                                android:transitionName="term_gpa"
-                                android:id="@+id/textview_term_gpa"/>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textColor="@android:color/white"
-                                android:textSize="16sp"
-                                android:text=" GPA"
-                                android:transitionName="term_gpa"/>
-                        </LinearLayout>
+                        android:id="@+id/course_expanded_title">
 
                         <TextView
+                            android:background="@android:color/white"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:textSize="16sp"
-                            android:layout_gravity="center"
+                            android:layout_height="match_parent"
+                            android:padding="10dp"
+                            android:gravity="center"
+                            android:elevation="5dp"
+                            android:textColor="@color/colorPrimaryDark"
+                            android:textSize="44sp"
                             android:singleLine="true"
                             android:ellipsize="end"
-                            android:transitionName="term_num_credits"
-                            android:id="@+id/textview_term_num_credits"/>
-                    </LinearLayout>
+                            android:transitionName="course_score"
+                            android:id="@+id/textview_course_score"/>
+
+                        <TextView
+                            android:background="@color/colorPrimary"
+                            android:layout_toEndOf="@id/textview_course_score"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:padding="10dp"
+                            android:gravity="center"
+                            android:elevation="5dp"
+                            android:textColor="@android:color/white"
+                            android:textSize="44sp"
+                            android:transitionName="course_grade"
+                            android:id="@+id/textview_course_grade"/>
+                    </RelativeLayout>
 
                     <android.support.v7.widget.Toolbar
                         android:layout_width="match_parent"
                         android:layout_height="?android:attr/actionBarSize"
                         app:layout_collapseMode="pin"
                         app:title=""
-                        android:id="@+id/action_bar_term">
+                        android:id="@+id/action_bar_course">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -95,7 +89,7 @@
                             android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/term_title"
+                                android:id="@+id/course_title"
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
                                 android:layout_marginEnd="8dp"
@@ -128,29 +122,29 @@
                         android:fontFamily="sans-serif-smallcaps"
                         android:textColor="@android:color/white"
                         android:textSize="16sp"
-                        android:text="Courses"/>
+                        android:text="Assignments"/>
                 </RelativeLayout>
 
                 <android.support.v7.widget.RecyclerView
                     android:focusable="false"
                     android:clipToPadding="false"
                     android:background="@android:color/transparent"
+                    android:layout_marginTop="8dp"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:paddingTop="16dp"
-                    android:id="@+id/recyclerview_courses"/>
+                    android:id="@+id/recyclerview_assignments"/>
             </LinearLayout>
 
             <android.support.design.widget.FloatingActionButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
-                app:layout_anchor="@id/term_appbar_container"
+                app:layout_anchor="@id/course_appbar_container"
                 app:layout_anchorGravity="bottom|end"
                 android:src="@drawable/ic_item_add"
                 android:tint="@android:color/white"
                 app:backgroundTint="@color/colorPrimary"
-                android:id="@+id/button_add_course"/>
+                android:id="@+id/button_add_assignment"/>
         </android.support.design.widget.CoordinatorLayout>
     </LinearLayout>
 </android.support.v4.widget.DrawerLayout>

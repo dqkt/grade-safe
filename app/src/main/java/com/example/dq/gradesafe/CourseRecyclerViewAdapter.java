@@ -3,6 +3,7 @@ package com.example.dq.gradesafe;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.util.DiffUtil;
@@ -58,7 +59,7 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
 
         this.term = term;
 
-        scoreFormatter = new DecimalFormat("0.0%");
+        scoreFormatter = new DecimalFormat("0");
         numCreditsFormatter = new DecimalFormat("0.#");
 
         this.isBinding = false;
@@ -107,7 +108,7 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
     }
 
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-        final Course course = ((CourseViewHolder) viewHolder).course;
+        final Course course = ((CourseViewHolder) viewHolder).getCourse();
         final int position = courses.indexOf(course);
         if (position != -1) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -192,7 +193,7 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
     @Override
     public CourseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final LinearLayout courseLayout = (LinearLayout) inflater.inflate(R.layout.layout_course, parent, false);
-        return new CourseViewHolder(courseLayout, context);
+        return new CourseViewHolder(courseLayout, context, term);
     }
 
     @Override
@@ -201,33 +202,7 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
         // super.onBindViewHolder(holder, position);
         if (!(holder instanceof CoursesHeader)) {
             final Course currentCourse = courses.get(position);
-
-            holder.course = currentCourse;
-            holder.name.setText(currentCourse.getName());
-            holder.fullName.setText(String.valueOf("Full name of " + currentCourse.getName()));
-
-            double numCredits = currentCourse.getNumCredits();
-            if (numCredits == 1) {
-                holder.numCredits.setText(String.valueOf(numCreditsFormatter.format(numCredits) + " credit"));
-            } else {
-                holder.numCredits.setText(String.valueOf(numCreditsFormatter.format(numCredits) + " credits"));
-            }
-            String overallGrade;
-            final float scale = context.getResources().getDisplayMetrics().density;
-            int pixels;
-            if ((overallGrade = currentCourse.getOverallGrade()) != null) {
-                holder.overallGrade.setText(overallGrade);
-                holder.overallScore.setText(scoreFormatter.format(currentCourse.getOverallScore()));
-                pixels = (int) (50 * scale + 0.5f);
-                holder.overallGrade.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
-                holder.overallScore.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
-            } else {
-                holder.overallGrade.setText("");
-                holder.overallScore.setText("");
-                pixels = (int) (10 * scale + 0.5f);
-                holder.overallGrade.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
-                holder.overallScore.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
-            }
+            holder.updateViewHolder(currentCourse, numCreditsFormatter, scoreFormatter);
         } else {
             CoursesHeader coursesHeader = (CoursesHeader) holder;
         }
@@ -249,27 +224,30 @@ class CoursesHeader extends CourseViewHolder {
 
 class CourseViewHolder extends RecyclerView.ViewHolder {
 
-    public Context context;
+    private Context context;
 
-    public Course course;
+    private Course course;
+    private Term term;
 
-    public LinearLayout overallLayout;
-    public TextView name;
-    public TextView fullName;
-    public TextView numCredits;
-    public LinearLayout resultsLayout;
-    public TextView overallScore;
-    public TextView overallGrade;
+    private LinearLayout overallLayout;
+    private TextView name;
+    private TextView fullName;
+    private TextView numCredits;
+    private LinearLayout resultsLayout;
+    private TextView overallScore;
+    private TextView overallGrade;
 
     public CourseViewHolder(View view) {
         super(view);
     }
 
-    public CourseViewHolder(View view, Context context) {
+    public CourseViewHolder(View view, final Context context, Term term) {
         // super(view, reactiveRecyclerView.getAdapter());
         super(view);
 
         this.context = context;
+
+        this.term = term;
 
         overallLayout = (LinearLayout) view;
         name = (TextView) overallLayout.findViewById(R.id.textview_name);
@@ -281,10 +259,55 @@ class CourseViewHolder extends RecyclerView.ViewHolder {
 
         overallLayout.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-
+            public void onClick(View view) {
+                Intent i = new Intent(context, CourseActivity.class);
+                i.putExtra(CourseActivity.SELECTED_COURSE_KEY, course);
+                i.putExtra(CourseActivity.CORRESPONDING_TERM_KEY, CourseViewHolder.this.term);
+                /*ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation((Activity) context,
+                        Pair.create((View) overallLayout, overallLayout.getTransitionName()));
+                context.startActivity(i, options.toBundle());*/
+                context.startActivity(i);
             }
         });
+    }
+
+    public void updateViewHolder(Course currentCourse, DecimalFormat numCreditsFormatter, DecimalFormat scoreFormatter) {
+        course = currentCourse;
+        name.setText(currentCourse.getName());
+
+        if (currentCourse.getFullName() == null) {
+            fullName.setVisibility(View.GONE);
+        } else {
+            fullName.setVisibility(View.VISIBLE);
+            fullName.setText(currentCourse.getFullName());
+        }
+
+        double numCreditsValue = currentCourse.getNumCredits();
+        if (numCreditsValue == 1) {
+            numCredits.setText(String.valueOf(numCreditsFormatter.format(numCreditsValue) + " credit"));
+        } else {
+            numCredits.setText(String.valueOf(numCreditsFormatter.format(numCreditsValue) + " credits"));
+        }
+        String overallGradeValue;
+        final float scale = context.getResources().getDisplayMetrics().density;
+        int pixels;
+        if ((overallGradeValue = currentCourse.getOverallGrade()) != null) {
+            overallGrade.setText(overallGradeValue);
+            overallScore.setText(scoreFormatter.format(currentCourse.getOverallScore()));
+            pixels = (int) (50 * scale + 0.5f);
+            overallGrade.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            overallScore.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        } else {
+            overallGrade.setText("");
+            overallScore.setText("");
+            pixels = (int) (10 * scale + 0.5f);
+            overallGrade.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
+            overallScore.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
+    }
+
+    public Course getCourse() {
+        return course;
     }
 }
 

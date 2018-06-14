@@ -5,7 +5,6 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
@@ -42,61 +41,58 @@ import java.util.List;
  * Created by DQ on 3/31/2018.
  */
 
-public class TermActivity extends AppCompatActivity {
+public class CourseActivity extends AppCompatActivity {
 
-    static final String SELECTED_TERM_KEY = "SELECTED_TERM";
-    static final String CORRESPONDING_YEAR_KEY = "CORRESPONDING_YEAR";
+    static final String SELECTED_COURSE_KEY = "SELECTED_COURSE";
+    static final String CORRESPONDING_TERM_KEY = "CORRESPONDING_TERM";
 
-    private Toolbar termToolbar;
+    private Toolbar courseToolbar;
     private Menu menu;
     private AppBarLayout appBarLayout;
 
     private TextView title;
-    private LinearLayout titleContainer;
+    private RelativeLayout titleContainer;
     private boolean isTheTitleVisible;
 
-    private List<GradingScale> gradingScales;
-
-    private GradingScaleListViewModel gradingScaleListViewModel;
-    private TermListViewModel termListViewModel;
     private CourseListViewModel courseListViewModel;
-    private Observer<List<Course>> courseListObserver;
+    private AssignmentListViewModel assignmentListViewModel;
+    private Observer<List<Assignment>> assignmentListObserver;
 
+    private Course course;
     private Term term;
-    private Year year;
 
-    private RelativeLayout editTermDialogLayout;
-    private EditText newTermName;
+    private LinearLayout editCourseDialogLayout;
+    private EditText newCourseName;
+    private EditText newNumCourseCredits;
 
     private TextView termName;
     private TextView yearName;
-    private TextView termGpa;
-    private TextView termNumCredits;
+    private TextView courseGrade;
+    private TextView courseScore;
 
-    private DecimalFormat gpaFormatter;
-    private DecimalFormat numCreditsFormatter;
+    private DecimalFormat scoreFormatter;
 
-    private GradingScale gradingScale;
+    private RecyclerView assignmentRecyclerView;
+    private AssignmentRecyclerViewAdapter assignmentRecyclerViewAdapter;
 
-    private RecyclerView courseRecyclerView;
-    private CourseRecyclerViewAdapter courseRecyclerViewAdapter;
-
-    private FloatingActionButton addCourseButton;
-    private LinearLayout addCourseDialogLayout;
-    private EditText newCourseName;
-    private EditText newCourseCredits;
-    private CheckBox newCourseAffectsGPA;
+    private FloatingActionButton addAssignmentButton;
+    private LinearLayout addAssignmentDialogLayout;
+    private EditText newAssignmentName;
+    private EditText newAssignmentWeight;
+    private EditText newAssignmentScoreNumerator;
+    private EditText newAssignmentScoreDenominator;
+    private CheckBox newAssignmentComplete;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_term);
+        setContentView(R.layout.activity_course);
 
-        termListViewModel = ViewModelProviders.of(this).get(TermListViewModel.class);
+        courseListViewModel = ViewModelProviders.of(this).get(CourseListViewModel.class);
 
         Intent intent = getIntent();
-        term = (Term) intent.getSerializableExtra(SELECTED_TERM_KEY);
-        year = (Year) intent.getSerializableExtra(CORRESPONDING_YEAR_KEY);
+        course = (Course) intent.getSerializableExtra(SELECTED_COURSE_KEY);
+        term = (Term) intent.getSerializableExtra(CORRESPONDING_TERM_KEY);
 
         setUpToolbar();
         setUpSummary();
@@ -106,14 +102,14 @@ public class TermActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         this.menu = menu;
-        getMenuInflater().inflate(R.menu.menu_term, menu);
+        getMenuInflater().inflate(R.menu.menu_course, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()) {
-            case R.id.edit_term: {
+            case R.id.edit_course: {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -129,27 +125,31 @@ public class TermActivity extends AppCompatActivity {
                 });
 
                 LayoutInflater inflater = (LayoutInflater) getSystemService(OverviewActivity.LAYOUT_INFLATER_SERVICE);
-                View view = inflater.inflate(R.layout.dialog_add_term, null);
+                View view = inflater.inflate(R.layout.dialog_add_course, null);
 
-                editTermDialogLayout = (RelativeLayout) view.findViewById(R.id.layout_add_term);
+                editCourseDialogLayout = (LinearLayout) view.findViewById(R.id.layout_add_course);
 
-                String termName = term.getName();
+                String courseName = course.getName();
+                double numCourseCredits = course.getNumCredits();
 
-                final TextInputLayout addNewItemLayout = (TextInputLayout) editTermDialogLayout.findViewById(R.id.textinput_add_term);
-                newTermName = (TextInputEditText) addNewItemLayout.findViewById(R.id.edittext_term_name);
-                newTermName.setText(termName);
-                builder.setView(editTermDialogLayout);
+                final TextInputLayout newCourseNameLayout = (TextInputLayout) editCourseDialogLayout.findViewById(R.id.textinput_course_name);
+                final TextInputLayout newNumCourseCreditsLayout = (TextInputLayout) editCourseDialogLayout.findViewById(R.id.textinput_num_credits);
+                newCourseName = (TextInputEditText) newCourseNameLayout.findViewById(R.id.edittext_course_name);
+                newNumCourseCredits = (TextInputEditText) newNumCourseCreditsLayout.findViewById(R.id.edittext_num_credits);
+                newCourseName.setText(courseName);
+                newNumCourseCredits.setText(String.valueOf(numCourseCredits));
+                builder.setView(editCourseDialogLayout);
 
                 final AlertDialog dialog = builder.create();
 
-                if (year != null) {
-                    SpannableStringBuilder stringBuilder = new SpannableStringBuilder("Modify " + termName);
-                    StyleSpan termNameSpan = new StyleSpan(Typeface.BOLD);
-                    int termNameLength = termName.length();
-                    stringBuilder.setSpan(termNameSpan, 7, 7 + termNameLength, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                if (term != null) {
+                    SpannableStringBuilder stringBuilder = new SpannableStringBuilder("Modify " + courseName);
+                    StyleSpan courseNameSpan = new StyleSpan(Typeface.BOLD);
+                    int courseNameLength = courseName.length();
+                    stringBuilder.setSpan(courseNameSpan, 7, 7 + courseNameLength, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                     dialog.setTitle(stringBuilder);
                 } else {
-                    dialog.setTitle("Modify term");
+                    dialog.setTitle("Modify course");
                 }
                 dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
                 dialog.setCanceledOnTouchOutside(true);
@@ -159,17 +159,17 @@ public class TermActivity extends AppCompatActivity {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String termName = newTermName.getText().toString().replaceAll("^\\s+|\\s+$", "");
+                        String courseName = newCourseName.getText().toString().replaceAll("^\\s+|\\s+$", "");
                         boolean valid = true;
 
-                        if (termName.isEmpty()) {
+                        if (courseName.isEmpty()) {
                             valid = false;
                         }
 
                         if (valid) {
-                            term.setName(termName);
-                            setTitle(termName);
-                            termListViewModel.updateTerm(term);
+                            course.setName(courseName);
+                            setTitle(courseName);
+                            courseListViewModel.updateCourse(course);
                             dialog.dismiss();
                         }
                     }
@@ -183,7 +183,7 @@ public class TermActivity extends AppCompatActivity {
                 });
                 return true;
             }
-            case R.id.delete_term: {
+            case R.id.delete_course: {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
                 builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
@@ -206,18 +206,18 @@ public class TermActivity extends AppCompatActivity {
 
                 final AlertDialog dialog = builder.create();
 
-                if (term != null && year != null) {
+                if (course != null && term != null) {
+                    String courseName = course.getName();
                     String termName = term.getName();
-                    String yearName = year.getName();
-                    SpannableStringBuilder stringBuilder = new SpannableStringBuilder("Are you sure you want to delete " + termName + " and its courses from " + yearName + "?");
+                    SpannableStringBuilder stringBuilder = new SpannableStringBuilder("Are you sure you want to delete " + courseName + " and its assignments from " + termName + "?");
+                    StyleSpan courseNameSpan = new StyleSpan(Typeface.BOLD);
                     StyleSpan termNameSpan = new StyleSpan(Typeface.BOLD);
-                    StyleSpan yearNameSpan = new StyleSpan(Typeface.BOLD);
-                    int termNameLength = termName.length();
-                    stringBuilder.setSpan(termNameSpan, 32, 32 + termNameLength, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-                    stringBuilder.setSpan(yearNameSpan, 54 + termNameLength, 54 + termNameLength + yearName.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                    int courseNameLength = courseName.length();
+                    stringBuilder.setSpan(courseNameSpan, 32, 32 + courseNameLength, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                    stringBuilder.setSpan(termNameSpan, 58 + courseNameLength, 58 + courseNameLength + termName.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                     message.setText(stringBuilder);
                 } else {
-                    message.setText(String.valueOf("Are you sure you want to delete this term and its courses from " + year.getName() + "?"));
+                    message.setText(String.valueOf("Are you sure you want to delete this course and its assignments from " + term.getName() + "?"));
                 }
                 dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
                 dialog.setCanceledOnTouchOutside(true);
@@ -228,7 +228,7 @@ public class TermActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         dialog.dismiss();
-                        termListViewModel.removeTerm(term);
+                        courseListViewModel.removeCourse(course);
                         onBackPressed();
                     }
                 });
@@ -241,8 +241,8 @@ public class TermActivity extends AppCompatActivity {
                 });
                 return true;
             }
-            case R.id.add_course: {
-                addCourse();
+            case R.id.add_assignment: {
+                addAssignment();
                 return true;
             }
             case android.R.id.home: {
@@ -277,40 +277,35 @@ public class TermActivity extends AppCompatActivity {
         // termName.setText(term.getName());
         // yearName.setText(year.getName());
 
-        termGpa = findViewById(R.id.textview_term_gpa);
-        termNumCredits = findViewById(R.id.textview_term_num_credits);
+        courseGrade = findViewById(R.id.textview_course_grade);
+        courseScore = findViewById(R.id.textview_course_score);
 
-        gpaFormatter = new DecimalFormat("0.000");
-        numCreditsFormatter = new DecimalFormat("0.#");
+        scoreFormatter = new DecimalFormat("0.00");
     }
 
-    private void updateSummary(boolean gradesExist) {
-        termGpa.setText(gpaFormatter.format(term.getGpa()));
-
-        double totalNumCredits = term.getTotalNumCredits();
-        if (totalNumCredits == 1) {
-            termNumCredits.setText("1 credit");
-        } else {
-            termNumCredits.setText(String.valueOf(numCreditsFormatter.format(totalNumCredits) + " credits"));
-        }
+    private void updateSummary(boolean scoresExist) {
+        course.updateOverallScore();
+        course.updateOverallGrade(GradingScale.createStandardGradingScale());
+        courseGrade.setText(course.getOverallGrade());
+        courseScore.setText(scoreFormatter.format(course.getOverallScore()));
     }
 
     private void setUpToolbar() {
-        title = findViewById(R.id.term_title);
-        titleContainer = findViewById(R.id.term_expanded_title);
+        title = findViewById(R.id.course_title);
+        titleContainer = findViewById(R.id.course_expanded_title);
         isTheTitleVisible = false;
 
         setTitle("");
-        title.setText(term.getName());
+        title.setText(course.getName());
 
-        termToolbar = findViewById(R.id.action_bar_term);
-        termToolbar.inflateMenu(R.menu.menu_term);
+        courseToolbar = findViewById(R.id.action_bar_course);
+        courseToolbar.inflateMenu(R.menu.menu_course);
 
-        setSupportActionBar(termToolbar);
+        setSupportActionBar(courseToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        appBarLayout = findViewById(R.id.term_appbar_container);
+        appBarLayout = findViewById(R.id.course_appbar_container);
 
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             int scrollRange = -1;
@@ -330,30 +325,22 @@ public class TermActivity extends AppCompatActivity {
     }
 
     private void setUpCoursesArea() {
-        courseRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_courses);
+        assignmentRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_assignments);
 
-        gradingScaleListViewModel = ViewModelProviders.of(this).get(GradingScaleListViewModel.class);
-        gradingScaleListViewModel.getGradingScaleList().observe(this, new Observer<List<GradingScale>>() {
+        assignmentListViewModel = ViewModelProviders.of(this).get(AssignmentListViewModel.class);
+        assignmentListObserver = new Observer<List<Assignment>>() {
             @Override
-            public void onChanged(@Nullable List<GradingScale> gradingScales) {
-                TermActivity.this.gradingScales = gradingScales;
-            }
-        });
-
-        courseListViewModel = ViewModelProviders.of(this).get(CourseListViewModel.class);
-        courseListObserver = new Observer<List<Course>>() {
-            @Override
-            public void onChanged(@Nullable List<Course> courses) {
-                courseRecyclerViewAdapter.updateCourses(courses);
-                term.setCourses(courses, GradingScale.createStandardGradingScale());
-                termListViewModel.updateTerm(term);
-                int numCourses = 0;
-                if (courses != null) {
-                    numCourses = courses.size();
+            public void onChanged(@Nullable List<Assignment> assignments) {
+                assignmentRecyclerViewAdapter.updateAssignments(assignments);
+                course.setAssignments(assignments);
+                courseListViewModel.updateCourse(course);
+                int numAssignments = 0;
+                if (assignments != null) {
+                    numAssignments = assignments.size();
                 }
                 boolean gradesExist = false;
-                for (int i = 0; i < numCourses; i++) {
-                    if (courses.get(i).getOverallGrade() != null){
+                for (int i = 0; i < numAssignments; i++) {
+                    if (assignments.get(i).getScoreDenominator() != 0){
                         gradesExist = true;
                         break;
                     }
@@ -361,11 +348,11 @@ public class TermActivity extends AppCompatActivity {
                 updateSummary(gradesExist);
             }
         };
-        courseListViewModel.getCoursesInTerm(term).observe(TermActivity.this, courseListObserver);
+        assignmentListViewModel.getAssignmentsInCourse(course).observe(CourseActivity.this, assignmentListObserver);
 
-        courseRecyclerViewAdapter = new CourseRecyclerViewAdapter(this, new ArrayList<Course>(), courseListViewModel, term);
-        courseRecyclerView.setAdapter(courseRecyclerViewAdapter);
-        LinearLayoutManager coursesLinearLayoutManager = new LinearLayoutManager(this) {
+        assignmentRecyclerViewAdapter = new AssignmentRecyclerViewAdapter(this, new ArrayList<Assignment>(), assignmentListViewModel, course);
+        assignmentRecyclerView.setAdapter(assignmentRecyclerViewAdapter);
+        LinearLayoutManager assignmentsLinearLayoutManager = new LinearLayoutManager(this) {
             @Override
             public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
                 try {
@@ -375,12 +362,12 @@ public class TermActivity extends AppCompatActivity {
                 }
             }
         };
-        coursesLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        courseRecyclerView.setLayoutManager(coursesLinearLayoutManager);
+        assignmentsLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        assignmentRecyclerView.setLayoutManager(assignmentsLinearLayoutManager);
         SwipeUtil swipeUtil = new SwipeUtil(ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.START | ItemTouchHelper.END, this) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                courseRecyclerViewAdapter.onMove(viewHolder, target);
+                assignmentRecyclerViewAdapter.onMove(viewHolder, target);
                 return false;
             }
 
@@ -390,7 +377,7 @@ public class TermActivity extends AppCompatActivity {
 
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                courseRecyclerViewAdapter.onSwiped(viewHolder, direction);
+                assignmentRecyclerViewAdapter.onSwiped(viewHolder, direction);
             }
 
             @Override
@@ -414,22 +401,22 @@ public class TermActivity extends AppCompatActivity {
             }
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipeUtil);
-        itemTouchHelper.attachToRecyclerView(courseRecyclerView);
+        itemTouchHelper.attachToRecyclerView(assignmentRecyclerView);
 
-        if (addCourseButton == null) {
-            addCourseButton = (FloatingActionButton) findViewById(R.id.button_add_course);
+        if (addAssignmentButton == null) {
+            addAssignmentButton = (FloatingActionButton) findViewById(R.id.button_add_assignment);
 
-            addCourseButton.setOnClickListener(new View.OnClickListener() {
+            addAssignmentButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    addCourse();
+                    addAssignment();
                 }
             });
         }
     }
 
-    private void addCourse() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(TermActivity.this);
+    private void addAssignment() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(CourseActivity.this);
 
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
@@ -443,23 +430,27 @@ public class TermActivity extends AppCompatActivity {
             }
         });
 
-        LayoutInflater inflater = (LayoutInflater) TermActivity.this.getSystemService(OverviewActivity.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.dialog_add_course, null);
+        LayoutInflater inflater = (LayoutInflater) CourseActivity.this.getSystemService(OverviewActivity.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.dialog_add_assignment, null);
 
-        addCourseDialogLayout = (LinearLayout) view.findViewById(R.id.layout_add_course);
+        addAssignmentDialogLayout = (LinearLayout) view.findViewById(R.id.layout_add_assignment);
 
-        final TextInputLayout courseNameLayout = (TextInputLayout) addCourseDialogLayout.findViewById(R.id.textinput_course_name);
-        final TextInputLayout courseCreditsLayout = (TextInputLayout) addCourseDialogLayout.findViewById(R.id.textinput_num_credits);
-        courseNameLayout.setErrorEnabled(true);
-        courseCreditsLayout.setErrorEnabled(true);
-        newCourseName = (TextInputEditText) courseNameLayout.findViewById(R.id.edittext_course_name);
-        newCourseCredits = (TextInputEditText) courseCreditsLayout.findViewById(R.id.edittext_num_credits);
-        newCourseAffectsGPA = (CheckBox) view.findViewById(R.id.checkbox_affects_gpa);
-        builder.setView(addCourseDialogLayout);
+        final TextInputLayout assignmentNameLayout = (TextInputLayout) addAssignmentDialogLayout.findViewById(R.id.textinput_name);
+        final TextInputLayout assignmentWeightLayout = (TextInputLayout) addAssignmentDialogLayout.findViewById(R.id.textinput_weight);
+        final TextInputLayout assignmentScoreNumeratorLayout = (TextInputLayout) addAssignmentDialogLayout.findViewById(R.id.textinput_score_numerator);
+        final TextInputLayout assignmentScoreDenominatorLayout = (TextInputLayout) addAssignmentDialogLayout.findViewById(R.id.textinput_score_denominator);
+        assignmentNameLayout.setErrorEnabled(true);
+        assignmentWeightLayout.setErrorEnabled(true);
+        newAssignmentName = (TextInputEditText) assignmentNameLayout.findViewById(R.id.edittext_name);
+        newAssignmentWeight = (TextInputEditText) assignmentWeightLayout.findViewById(R.id.edittext_weight);
+        newAssignmentScoreNumerator = (TextInputEditText) assignmentScoreNumeratorLayout.findViewById(R.id.edittext_score_numerator);
+        newAssignmentScoreDenominator = (TextInputEditText) assignmentScoreDenominatorLayout.findViewById(R.id.edittext_score_denominator);
+        newAssignmentComplete = (CheckBox) view.findViewById(R.id.checkbox_complete);
+        builder.setView(addAssignmentDialogLayout);
 
         final AlertDialog dialog = builder.create();
 
-        dialog.setTitle("Add a course");
+        dialog.setTitle("Add an assignment");
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         dialog.setCanceledOnTouchOutside(true);
 
@@ -468,26 +459,32 @@ public class TermActivity extends AppCompatActivity {
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String courseName = newCourseName.getText().toString().replaceAll("^\\s+|\\s+$", "");
-                String courseCredits = newCourseCredits.getText().toString().replaceAll("^\\s+|\\s+$", "");
-                boolean countsTowardGPA = newCourseAffectsGPA.isChecked();
+                String assignmentName = newAssignmentName.getText().toString().replaceAll("^\\s+|\\s+$", "");
+                String assignmentWeight = newAssignmentWeight.getText().toString().replaceAll("^\\s+|\\s+$", "");
+                String assignmentScoreNumerator = newAssignmentScoreNumerator.getText().toString().replaceAll("^\\s+|\\s+$", "");
+                String assignmentScoreDenominator = newAssignmentScoreDenominator.getText().toString().replaceAll("^\\s+|\\s+$", "");
+                boolean assignmentComplete = newAssignmentComplete.isChecked();
                 boolean valid = true;
 
-                if (courseName.isEmpty()) {
+                if (assignmentName.isEmpty()) {
                     valid = false;
-                    newCourseName.setError("Name cannot be blank");
+                    newAssignmentName.setError("Name cannot be blank");
                 }
 
-                if (courseCredits.isEmpty()) {
+                if (assignmentWeight.isEmpty()) {
                     valid = false;
-                    newCourseCredits.setError("Empty field");
+                    newAssignmentWeight.setError("Empty field");
                 }
 
                 if (valid) {
-                    double numCourseCredits = Double.parseDouble(courseCredits);
-                    Course newCourse = new Course(courseName, numCourseCredits, countsTowardGPA, term.getTermID());
-                    newCourse.setListIndex(courseRecyclerViewAdapter.getItemCount());
-                    courseListViewModel.addCourse(newCourse);
+                    double assignmentWeightValue = Double.parseDouble(assignmentWeight);
+                    double assignmentScoreNumeratorValue = Double.parseDouble(assignmentScoreNumerator);
+                    double assignmentScoreDenominatorValue = Double.parseDouble(assignmentScoreDenominator);
+                    Assignment newAssignment = new Assignment(assignmentName, assignmentWeightValue, assignmentScoreNumeratorValue, assignmentScoreDenominatorValue, assignmentComplete, course.getCourseID());
+                    newAssignment.setListIndex(assignmentRecyclerViewAdapter.getItemCount());
+                    assignmentListViewModel.addAssignment(newAssignment);
+                    course.updateOverallScore();
+                    course.updateOverallGrade(GradingScale.createStandardGradingScale());
                     dialog.dismiss();
                 }
             }

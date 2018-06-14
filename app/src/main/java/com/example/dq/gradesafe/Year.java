@@ -35,10 +35,6 @@ public class Year implements Serializable {
         this.name = name;
     }
 
-    protected Year(Parcel in) {
-        name = in.readString();
-    }
-
     public int getYearID() {
         return yearID;
     }

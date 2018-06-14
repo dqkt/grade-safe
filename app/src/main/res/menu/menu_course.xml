@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/edit_course"
+        android:icon="@drawable/ic_edit_white"
+        app:showAsAction="never|withText"
+        android:title="Edit course"
+        android:titleCondensed="Edit"/>
+
+    <item
+        android:id="@+id/delete_course"
+        android:icon="@drawable/ic_delete_white"
+        app:showAsAction="never|withText"
+        android:title="Delete course"
+        android:titleCondensed="Delete"/>
+
+    <item
+        android:id="@+id/add_assignment"
+        android:icon="@drawable/ic_item_add"
+        app:showAsAction="never|withText"
+        android:title="Add assignment"
+        android:titleCondensed="Add course"/>
+</menu>

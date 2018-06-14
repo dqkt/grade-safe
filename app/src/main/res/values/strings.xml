@@ -5,6 +5,7 @@
     <string name="add_term_description">Add a term</string>
     <string name="edit_year">Edit year</string>
     <string name="counts_toward_gpa">Counts toward GPA</string>
+    <string name="counts_toward_gpa_expanded">This course counts toward my GPA.</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
 </resources>
