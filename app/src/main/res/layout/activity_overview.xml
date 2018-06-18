@@ -126,19 +126,37 @@
                 <RelativeLayout
                     android:background="@color/colorAccent"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="56dp"
+                    android:padding="16dp"
+                    android:elevation="2dp">
 
                     <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:paddingTop="16dp"
-                        android:paddingBottom="16dp"
+                        android:layout_alignParentStart="true"
+                        android:gravity="center_vertical"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
                         android:fontFamily="sans-serif-smallcaps"
                         android:textColor="@android:color/white"
                         android:textSize="16sp"
                         android:text="Years"/>
+
+                    <RelativeLayout
+                        android:layout_alignParentEnd="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="@drawable/circle_selector"
+                        android:id="@+id/collapsed_button_add_year">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical|end"
+                            android:src="@drawable/ic_add"
+                            android:contentDescription="Add year"
+                            android:tint="@android:color/white"/>
+                    </RelativeLayout>
                 </RelativeLayout>
 
                 <FrameLayout

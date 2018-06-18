@@ -1,0 +1,304 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "f6406fae6084660255c2b90865047ee8",
+    "entities": [
+      {
+        "tableName": "Year",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`yearID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `listIndex` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "yearID",
+            "columnName": "yearID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "listIndex",
+            "columnName": "listIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "yearID"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "Term",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`termID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `totalNumCredits` REAL NOT NULL, `gpa` REAL NOT NULL, `yearID` INTEGER NOT NULL, `listIndex` INTEGER NOT NULL, FOREIGN KEY(`yearID`) REFERENCES `Year`(`yearID`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "termID",
+            "columnName": "termID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "totalNumCredits",
+            "columnName": "totalNumCredits",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gpa",
+            "columnName": "gpa",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "yearID",
+            "columnName": "yearID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "listIndex",
+            "columnName": "listIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "termID"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": [
+          {
+            "table": "Year",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "yearID"
+            ],
+            "referencedColumns": [
+              "yearID"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Course",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`courseID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `fullName` TEXT, `numCredits` REAL NOT NULL, `countsTowardGPA` INTEGER NOT NULL, `overallScore` REAL NOT NULL, `overallGrade` TEXT, `termID` INTEGER NOT NULL, `gradingScaleName` TEXT, `listIndex` INTEGER NOT NULL, FOREIGN KEY(`termID`) REFERENCES `Term`(`termID`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`gradingScaleName`) REFERENCES `GradingScale`(`name`) ON UPDATE CASCADE ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "courseID",
+            "columnName": "courseID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "fullName",
+            "columnName": "fullName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "numCredits",
+            "columnName": "numCredits",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "countsTowardGPA",
+            "columnName": "countsTowardGPA",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "overallScore",
+            "columnName": "overallScore",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "overallGrade",
+            "columnName": "overallGrade",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "termID",
+            "columnName": "termID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gradingScaleName",
+            "columnName": "gradingScaleName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "listIndex",
+            "columnName": "listIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "courseID"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": [
+          {
+            "table": "Term",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "termID"
+            ],
+            "referencedColumns": [
+              "termID"
+            ]
+          },
+          {
+            "table": "GradingScale",
+            "onDelete": "NO ACTION",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "gradingScaleName"
+            ],
+            "referencedColumns": [
+              "name"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Assignment",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`assignmentID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `weight` REAL NOT NULL, `scoreNumerator` REAL NOT NULL, `scoreDenominator` REAL NOT NULL, `complete` INTEGER NOT NULL, `courseID` INTEGER NOT NULL, `listIndex` INTEGER NOT NULL, FOREIGN KEY(`courseID`) REFERENCES `Course`(`courseID`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "assignmentID",
+            "columnName": "assignmentID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "weight",
+            "columnName": "weight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scoreNumerator",
+            "columnName": "scoreNumerator",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scoreDenominator",
+            "columnName": "scoreDenominator",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "complete",
+            "columnName": "complete",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "courseID",
+            "columnName": "courseID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "listIndex",
+            "columnName": "listIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "assignmentID"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": [
+          {
+            "table": "Course",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "courseID"
+            ],
+            "referencedColumns": [
+              "courseID"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "GradingScale",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `scoreRanges` TEXT, PRIMARY KEY(`name`))",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scoreRanges",
+            "columnName": "scoreRanges",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "name"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"f6406fae6084660255c2b90865047ee8\")"
+    ]
+  }
+}

@@ -1,11 +1,11 @@
 package com.example.dq.gradesafe;
 
+import android.animation.Animator;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
@@ -27,7 +27,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -76,7 +75,7 @@ public class TermActivity extends AppCompatActivity {
     private DecimalFormat gpaFormatter;
     private DecimalFormat numCreditsFormatter;
 
-    private GradingScale gradingScale;
+    private RelativeLayout addCourseButtonCollapsed;
 
     private TextView noCoursesView;
     private RecyclerView courseRecyclerView;
@@ -322,23 +321,60 @@ public class TermActivity extends AppCompatActivity {
         appBarLayout = findViewById(R.id.term_appbar_container);
 
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-            int scrollRange = -1;
+            boolean addButtonShowing = false;
 
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-                if (scrollRange == -1) {
-                    scrollRange = appBarLayout.getTotalScrollRange();
-                }
-
                 int maxScroll = appBarLayout.getTotalScrollRange();
                 float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.6));
 
                 titleContainer.setAlpha(1 - percentage);
+                if (Math.abs(verticalOffset) == maxScroll) {
+                    if (!addButtonShowing) {
+                        addButtonShowing = true;
+                        addCourseButtonCollapsed.setVisibility(View.VISIBLE);
+                        addCourseButtonCollapsed.animate().setDuration(200).alpha(1.0f).setListener(null);
+                    }
+                } else {
+                    if (addButtonShowing) {
+                        addButtonShowing = false;
+                        addCourseButtonCollapsed.animate().setDuration(200).alpha(0.0f).setListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                addCourseButtonCollapsed.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animator) {
+
+                            }
+                        });
+                    }
+                }
             }
         });
     }
 
     private void setUpCoursesArea() {
+        addCourseButtonCollapsed = (RelativeLayout) findViewById(R.id.collapsed_button_add_course);
+        addCourseButtonCollapsed.setVisibility(View.GONE);
+        addCourseButtonCollapsed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addCourse();
+            }
+        });
+
         noCoursesView = (TextView) findViewById(R.id.textview_no_courses);
         courseRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_courses);
 

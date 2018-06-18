@@ -507,7 +507,7 @@ class YearViewHolder extends ReactiveRecyclerView.ViewHolder {
 
                         if (valid) {
                             optionsHandler.postDelayed(optionsTimeout, OPTIONS_TIMEOUT);
-                            Term newTerm = new Term(termName, "Standard Grading Scale", year.getYearID());
+                            Term newTerm = new Term(termName, year.getYearID());
                             newTerm.setListIndex(termRecyclerViewAdapter.getItemCount());
                             termListViewModel.addTerm(newTerm);
                             dialog.dismiss();

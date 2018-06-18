@@ -24,8 +24,7 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
  */
 
 @Entity(foreignKeys = {
-        @ForeignKey(entity = Year.class, parentColumns = "yearID", childColumns = "yearID", onDelete = CASCADE, onUpdate = CASCADE),
-        @ForeignKey(entity = GradingScale.class, parentColumns = "name", childColumns = "gradingScaleName", onUpdate = CASCADE)
+        @ForeignKey(entity = Year.class, parentColumns = "yearID", childColumns = "yearID", onDelete = CASCADE, onUpdate = CASCADE)
         })
 public class Term implements Serializable {
 
@@ -40,14 +39,12 @@ public class Term implements Serializable {
     private double gpa;
 
     private int yearID;
-    private String gradingScaleName;
 
     private int listIndex;
 
-    Term(String name, String gradingScaleName, int yearID) {
+    Term(String name, int yearID) {
         this.name = name;
 
-        this.gradingScaleName = gradingScaleName;
         this.yearID = yearID;
     }
 
@@ -81,13 +78,6 @@ public class Term implements Serializable {
     }
     public void setGpa(double gpa) {
         this.gpa = gpa;
-    }
-
-    public String getGradingScaleName() {
-        return gradingScaleName;
-    }
-    public void setGradingScale(String gradingScaleName) {
-        this.gradingScaleName = gradingScaleName;
     }
 
     public void updateTotalNumCredits() {
@@ -128,9 +118,12 @@ public class Term implements Serializable {
         this.listIndex = listIndex;
     }
 
-    public boolean equals(final Term otherTerm) {
-        return Objects.equals(name, otherTerm.name) && Objects.equals(gradingScaleName, otherTerm.gradingScaleName)
-                && totalNumCredits == otherTerm.totalNumCredits && gpa == otherTerm.gpa;
+    public boolean equals(final Object otherObject) {
+        if (otherObject instanceof Term) {
+            final Term otherTerm = (Term) otherObject;
+            return Objects.equals(name, otherTerm.name) && totalNumCredits == otherTerm.totalNumCredits && gpa == otherTerm.gpa;
+        }
+        return super.equals(otherObject);
     }
 
     @Dao

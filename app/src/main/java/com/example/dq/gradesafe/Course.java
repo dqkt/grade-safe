@@ -26,7 +26,10 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
  * Created by DQ on 3/19/2018.
  */
 
-@Entity(foreignKeys = @ForeignKey(entity = Term.class, parentColumns = "termID", childColumns = "termID", onDelete = CASCADE, onUpdate = CASCADE))
+@Entity(foreignKeys = {
+        @ForeignKey(entity = Term.class, parentColumns = "termID", childColumns = "termID", onDelete = CASCADE, onUpdate = CASCADE),
+        @ForeignKey(entity = GradingScale.class, parentColumns = "name", childColumns = "gradingScaleName", onUpdate = CASCADE)
+})
 public class Course implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
@@ -43,6 +46,7 @@ public class Course implements Serializable {
     private String overallGrade;
 
     private int termID;
+    private String gradingScaleName;
 
     private int listIndex;
 
@@ -137,6 +141,13 @@ public class Course implements Serializable {
         this.termID = termID;
     }
 
+    public String getGradingScaleName() {
+        return gradingScaleName;
+    }
+    public void setGradingScaleName(String gradingScaleName) {
+        this.gradingScaleName = gradingScaleName;
+    }
+
     public int getListIndex() {
         return listIndex;
     }
@@ -144,10 +155,14 @@ public class Course implements Serializable {
         this.listIndex = listIndex;
     }
 
-    public boolean equals(final Course otherCourse) {
-        return Objects.equals(name, otherCourse.name) && Objects.equals(fullName, otherCourse.fullName)
-                && numCredits == otherCourse.numCredits && countsTowardGPA == otherCourse.countsTowardGPA && overallScore == otherCourse.overallScore
-                && Objects.equals(overallGrade, otherCourse.overallGrade);
+    public boolean equals(final Object otherObject) {
+        if (otherObject instanceof Course) {
+            final Course otherCourse = (Course) otherObject;
+            return Objects.equals(name, otherCourse.name) && Objects.equals(fullName, otherCourse.fullName)
+                    && numCredits == otherCourse.numCredits && countsTowardGPA == otherCourse.countsTowardGPA && overallScore == otherCourse.overallScore
+                    && Objects.equals(overallGrade, otherCourse.overallGrade) && Objects.equals(gradingScaleName, otherCourse.gradingScaleName);
+        }
+        return super.equals(otherObject);
     }
 
     @Dao

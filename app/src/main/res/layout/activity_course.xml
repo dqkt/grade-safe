@@ -48,13 +48,13 @@
                         android:id="@+id/course_expanded_title">
 
                         <TextView
-                            android:background="@android:color/white"
+                            android:background="@color/colorPrimary"
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
                             android:padding="10dp"
                             android:gravity="center"
                             android:elevation="5dp"
-                            android:textColor="@color/colorPrimaryDark"
+                            android:textColor="@android:color/white"
                             android:textSize="44sp"
                             android:singleLine="true"
                             android:ellipsize="end"
@@ -62,7 +62,7 @@
                             android:id="@+id/textview_course_score"/>
 
                         <TextView
-                            android:background="@color/colorPrimary"
+                            android:background="@android:color/white"
                             android:layout_toEndOf="@id/textview_course_score"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -70,7 +70,7 @@
                             android:padding="10dp"
                             android:gravity="center"
                             android:elevation="5dp"
-                            android:textColor="@android:color/white"
+                            android:textColor="@color/colorPrimaryDark"
                             android:textSize="44sp"
                             android:transitionName="course_grade"
                             android:id="@+id/textview_course_grade"/>
@@ -110,19 +110,37 @@
                 <RelativeLayout
                     android:background="@color/colorAccent"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="56dp"
+                    android:padding="16dp"
+                    android:elevation="2dp">
 
                     <TextView
+                        android:layout_alignParentStart="true"
+                        android:gravity="center_vertical"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:paddingTop="16dp"
-                        android:paddingBottom="16dp"
+                        android:layout_height="match_parent"
                         android:fontFamily="sans-serif-smallcaps"
                         android:textColor="@android:color/white"
                         android:textSize="16sp"
                         android:text="Assignments"/>
+
+                    <RelativeLayout
+                        android:layout_alignParentEnd="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="@drawable/circle_selector"
+                        android:id="@+id/collapsed_button_add_assignment">
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical|end"
+                            android:src="@drawable/ic_add"
+                            android:contentDescription="Add assignment"
+                            android:tint="@android:color/white"/>
+                    </RelativeLayout>
                 </RelativeLayout>
 
                 <FrameLayout
@@ -132,10 +150,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:paddingTop="16dp"
-                        android:paddingBottom="16dp"
+                        android:padding="16dp"
                         android:textColor="@android:color/black"
                         android:textSize="16sp"
                         android:text="You haven't added any assignments to this course."
@@ -145,10 +160,11 @@
                     <android.support.v7.widget.RecyclerView
                         android:focusable="false"
                         android:clipToPadding="false"
+                        android:outlineProvider="bounds"
                         android:background="@android:color/transparent"
-                        android:layout_marginTop="8dp"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:padding="16dp"
                         android:id="@+id/recyclerview_assignments"/>
                 </FrameLayout>
             </LinearLayout>

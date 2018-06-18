@@ -56,8 +56,12 @@ public class Year implements Serializable {
         this.listIndex = listIndex;
     }
 
-    public boolean equals(final Year otherYear) {
-        return Objects.equals(name, otherYear.name);
+    public boolean equals(final Object otherObject) {
+        if (otherObject instanceof Year) {
+            final Year otherYear = (Year) otherObject;
+            return Objects.equals(name, otherYear.name);
+        }
+        return super.equals(otherObject);
     }
 
     @Dao

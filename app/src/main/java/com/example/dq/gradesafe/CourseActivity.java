@@ -1,5 +1,6 @@
 package com.example.dq.gradesafe;
 
+import android.animation.Animator;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
@@ -72,6 +73,8 @@ public class CourseActivity extends AppCompatActivity {
 
     private DecimalFormat scoreFormatter;
     private DecimalFormat numCreditsFormatter;
+
+    private RelativeLayout addAssignmentButtonCollapsed;
 
     private TextView noAssignmentsView;
     private RecyclerView assignmentRecyclerView;
@@ -325,23 +328,60 @@ public class CourseActivity extends AppCompatActivity {
         appBarLayout = findViewById(R.id.course_appbar_container);
 
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-            int scrollRange = -1;
+            boolean addButtonShowing = false;
 
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-                if (scrollRange == -1) {
-                    scrollRange = appBarLayout.getTotalScrollRange();
-                }
-
                 int maxScroll = appBarLayout.getTotalScrollRange();
                 float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.6));
 
                 titleContainer.setAlpha(1 - percentage);
+                if (Math.abs(verticalOffset) == maxScroll) {
+                    if (!addButtonShowing) {
+                        addButtonShowing = true;
+                        addAssignmentButtonCollapsed.setVisibility(View.VISIBLE);
+                        addAssignmentButtonCollapsed.animate().setDuration(200).alpha(1.0f).setListener(null);
+                    }
+                } else {
+                    if (addButtonShowing) {
+                        addButtonShowing = false;
+                        addAssignmentButtonCollapsed.animate().setDuration(200).alpha(0.0f).setListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                addAssignmentButtonCollapsed.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animator) {
+
+                            }
+                        });
+                    }
+                }
             }
         });
     }
 
     private void setUpAssignmentsArea() {
+        addAssignmentButtonCollapsed = (RelativeLayout) findViewById(R.id.collapsed_button_add_assignment);
+        addAssignmentButtonCollapsed.setVisibility(View.GONE);
+        addAssignmentButtonCollapsed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addAssignment();
+            }
+        });
+
         noAssignmentsView = (TextView) findViewById(R.id.textview_no_assignments);
         assignmentRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_assignments);
 

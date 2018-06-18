@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,8 +41,8 @@ public class AssignmentRecyclerViewAdapter extends RecyclerView.Adapter<Assignme
 
     private Course course;
 
-    private static DecimalFormat weightFormatter;
-    private static DecimalFormat scoreFormatter;
+    public static final DecimalFormat weightFormatter = new DecimalFormat("0'%'");
+    public static final DecimalFormat scoreFormatter = new DecimalFormat("0.00");
 
     protected boolean isBinding;
 
@@ -54,9 +55,6 @@ public class AssignmentRecyclerViewAdapter extends RecyclerView.Adapter<Assignme
         this.assignmentListViewModel = assignmentListViewModel;
 
         this.course = course;
-
-        weightFormatter = new DecimalFormat("0");
-        scoreFormatter = new DecimalFormat("0");
 
         this.isBinding = false;
 
@@ -188,7 +186,7 @@ public class AssignmentRecyclerViewAdapter extends RecyclerView.Adapter<Assignme
 
     @Override
     public AssignmentViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final LinearLayout assignmentLayout = (LinearLayout) inflater.inflate(R.layout.layout_assignment, parent, false);
+        final View assignmentLayout = inflater.inflate(R.layout.layout_assignment, parent, false);
         return new AssignmentViewHolder(assignmentLayout, context);
     }
 
@@ -198,7 +196,7 @@ public class AssignmentRecyclerViewAdapter extends RecyclerView.Adapter<Assignme
         // super.onBindViewHolder(holder, position);
         if (!(holder instanceof AssignmentsHeader)) {
             final Assignment currentAssignment = assignments.get(position);
-            holder.updateViewHolder(currentAssignment, weightFormatter, scoreFormatter);
+            holder.updateViewHolder(currentAssignment);
         } else {
             AssignmentsHeader assignmentsHeader = (AssignmentsHeader) holder;
         }
@@ -224,7 +222,7 @@ class AssignmentViewHolder extends RecyclerView.ViewHolder {
 
     private Assignment assignment;
 
-    private LinearLayout overallLayout;
+    private RelativeLayout overallLayout;
     private TextView name;
     private TextView weight;
     private TextView score;
@@ -240,37 +238,30 @@ class AssignmentViewHolder extends RecyclerView.ViewHolder {
 
         this.context = context;
 
-        overallLayout = (LinearLayout) view;
+        overallLayout = (RelativeLayout) view;
         name = (TextView) overallLayout.findViewById(R.id.textview_name);
         weight = (TextView) overallLayout.findViewById(R.id.textview_weight);
         score = (TextView) overallLayout.findViewById(R.id.textview_score);
-        grade = (TextView) overallLayout.findViewById(R.id.textview_grade);
+        // grade = (TextView) overallLayout.findViewById(R.id.textview_grade);
     }
 
-    public void updateViewHolder(Assignment currentAssignment, DecimalFormat weightFormatter, DecimalFormat scoreFormatter) {
+    public void updateViewHolder(Assignment currentAssignment) {
         assignment = currentAssignment;
         name.setText(currentAssignment.getName());
 
-        weight.setText(String.valueOf(weightFormatter.format(currentAssignment.getWeight()) + "%"));
+        weight.setText(String.valueOf("Worth " + AssignmentRecyclerViewAdapter.weightFormatter.format(currentAssignment.getWeight())));
         double scoreDenominator;
-        final float scale = context.getResources().getDisplayMetrics().density;
-        int pixels;
         if ((scoreDenominator = currentAssignment.getScoreDenominator()) != 0 && assignment.isComplete()) {
             double overallScore = currentAssignment.getScoreNumerator() / scoreDenominator * 100;
             GradingScale gradingScale = GradingScale.createStandardGradingScale();
             ScoreRange scoreRange = gradingScale.getScoreRange(overallScore);
-            if (scoreRange != null) {
+            /*if (scoreRange != null) {
                 grade.setText(scoreRange.getGrade());
-            }
-            score.setText(scoreFormatter.format(Math.rint(overallScore)));
-            grade.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            score.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            }*/
+            score.setText(AssignmentRecyclerViewAdapter.scoreFormatter.format(Math.rint(overallScore)));
         } else {
-            grade.setText("");
+            // grade.setText("");
             score.setText("");
-            pixels = (int) (10 * scale + 0.5f);
-            grade.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
-            score.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
         }
     }
 

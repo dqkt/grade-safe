@@ -11,10 +11,12 @@ import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
@@ -101,6 +103,20 @@ public class Assignment implements Serializable {
     }
     public void setListIndex(int listIndex) {
         this.listIndex = listIndex;
+    }
+
+    public boolean equals(final Object otherObject) {
+        if (otherObject instanceof Assignment) {
+            final Assignment otherAssignment = (Assignment) otherObject;
+            return Objects.equals(name, otherAssignment.name) && weight == otherAssignment.weight && complete == otherAssignment.complete
+                    && scoreNumerator == otherAssignment.scoreNumerator && scoreDenominator == otherAssignment.scoreDenominator;
+        }
+        return super.equals(otherObject);
+    }
+
+    public String toString() {
+        return name + "\nWeight: " + String.valueOf(weight) + "%\nScore: " + String.valueOf(scoreNumerator) + "/" + String.valueOf(scoreDenominator)
+                + "\nComplete: " + complete;
     }
 
     @Dao

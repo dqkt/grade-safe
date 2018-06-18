@@ -44,8 +44,8 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
 
     private Term term;
 
-    private static DecimalFormat scoreFormatter;
-    private static DecimalFormat numCreditsFormatter;
+    public static final DecimalFormat scoreFormatter = new DecimalFormat("0.00");
+    public static final DecimalFormat numCreditsFormatter = new DecimalFormat("0.#");
 
     protected boolean isBinding;
 
@@ -58,9 +58,6 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
         this.courseListViewModel = courseListViewModel;
 
         this.term = term;
-
-        scoreFormatter = new DecimalFormat("0");
-        numCreditsFormatter = new DecimalFormat("0.#");
 
         this.isBinding = false;
 
@@ -174,6 +171,7 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
     }
 
     public void updateCourses(List<Course> courses) {
+        Log.d("DEBUG", "update courses");
         DiffUtil.DiffResult difference = DiffUtil.calculateDiff(new CourseListDiffCallback(this.courses, courses));
         this.courses.clear();
         this.courses.addAll(courses);
@@ -202,7 +200,7 @@ public class CourseRecyclerViewAdapter extends RecyclerView.Adapter<CourseViewHo
         // super.onBindViewHolder(holder, position);
         if (!(holder instanceof CoursesHeader)) {
             final Course currentCourse = courses.get(position);
-            holder.updateViewHolder(currentCourse, numCreditsFormatter, scoreFormatter);
+            holder.updateViewHolder(currentCourse);
         } else {
             CoursesHeader coursesHeader = (CoursesHeader) holder;
         }
@@ -271,7 +269,7 @@ class CourseViewHolder extends RecyclerView.ViewHolder {
         });
     }
 
-    public void updateViewHolder(Course currentCourse, DecimalFormat numCreditsFormatter, DecimalFormat scoreFormatter) {
+    public void updateViewHolder(Course currentCourse) {
         course = currentCourse;
         name.setText(currentCourse.getName());
 
@@ -284,25 +282,17 @@ class CourseViewHolder extends RecyclerView.ViewHolder {
 
         double numCreditsValue = currentCourse.getNumCredits();
         if (numCreditsValue == 1) {
-            numCredits.setText(String.valueOf(numCreditsFormatter.format(numCreditsValue) + " credit"));
+            numCredits.setText(String.valueOf(CourseRecyclerViewAdapter.numCreditsFormatter.format(numCreditsValue) + " credit"));
         } else {
-            numCredits.setText(String.valueOf(numCreditsFormatter.format(numCreditsValue) + " credits"));
+            numCredits.setText(String.valueOf(CourseRecyclerViewAdapter.numCreditsFormatter.format(numCreditsValue) + " credits"));
         }
         String overallGradeValue;
-        final float scale = context.getResources().getDisplayMetrics().density;
-        int pixels;
         if ((overallGradeValue = currentCourse.getOverallGrade()) != null) {
             overallGrade.setText(overallGradeValue);
-            overallScore.setText(scoreFormatter.format(currentCourse.getOverallScore()));
-            pixels = (int) (50 * scale + 0.5f);
-            overallGrade.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            overallScore.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            overallScore.setText(CourseRecyclerViewAdapter.scoreFormatter.format(currentCourse.getOverallScore()));
         } else {
             overallGrade.setText("");
             overallScore.setText("");
-            pixels = (int) (10 * scale + 0.5f);
-            overallGrade.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
-            overallScore.setLayoutParams(new FrameLayout.LayoutParams(pixels, ViewGroup.LayoutParams.MATCH_PARENT));
         }
     }
 

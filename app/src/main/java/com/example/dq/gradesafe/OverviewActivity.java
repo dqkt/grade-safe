@@ -1,56 +1,35 @@
 package com.example.dq.gradesafe;
 
+import android.animation.Animator;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class OverviewActivity extends AppCompatActivity
         implements YearReactiveRecyclerViewAdapter.YearActionCallback {
@@ -65,6 +44,8 @@ public class OverviewActivity extends AppCompatActivity
     private Observer<List<Year>> yearListObserver;
     private CourseListViewModel courseListViewModel;
     private Observer<List<Course>> courseListObserver;
+
+    private RelativeLayout addYearButtonCollapsed;
 
     private TextView noYearsView;
     private ReactiveRecyclerView yearRecyclerView;
@@ -147,19 +128,47 @@ public class OverviewActivity extends AppCompatActivity
         appBarLayout = findViewById(R.id.overview_appbar_container);
 
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-            int scrollRange = -1;
+            boolean addButtonShowing = false;
 
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-                if (scrollRange == -1) {
-                    scrollRange = appBarLayout.getTotalScrollRange();
-                }
-
                 int maxScroll = appBarLayout.getTotalScrollRange();
-                float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.8));
+                float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.6));
 
                 titleContainer.setAlpha(1 - percentage);
                 handleToolbarTitleVisibility(percentage);
+                if (Math.abs(verticalOffset) == maxScroll) {
+                    if (!addButtonShowing) {
+                        addButtonShowing = true;
+                        addYearButtonCollapsed.setVisibility(View.VISIBLE);
+                        addYearButtonCollapsed.animate().setDuration(200).alpha(1.0f).setListener(null);
+                    }
+                } else {
+                    if (addButtonShowing) {
+                        addButtonShowing = false;
+                        addYearButtonCollapsed.animate().setDuration(200).alpha(0.0f).setListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                addYearButtonCollapsed.setVisibility(View.GONE);
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animator) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animator) {
+
+                            }
+                        });
+                    }
+                }
             }
         });
     }
@@ -224,7 +233,7 @@ public class OverviewActivity extends AppCompatActivity
         startAlphaAnimation(title, 0, View.INVISIBLE);
     }
 
-    private void updateOverallSummary(List<Course> courses) {
+    private void updateYearsArea() {
         if (yearRecyclerViewAdapter.getItemCount() > 0) {
             yearRecyclerView.setVisibility(View.VISIBLE);
             noYearsView.setVisibility(View.GONE);
@@ -232,7 +241,9 @@ public class OverviewActivity extends AppCompatActivity
             yearRecyclerView.setVisibility(View.GONE);
             noYearsView.setVisibility(View.VISIBLE);
         }
+    }
 
+    private void updateOverallSummary(List<Course> courses) {
         double contributionTowardGpa = 0;
         double overallTotalNumCredits = 0, overallTotalNumCreditsContributing = 0;
         GradingScale gradingScale = GradingScale.createStandardGradingScale();
@@ -263,6 +274,15 @@ public class OverviewActivity extends AppCompatActivity
     }
 
     private void setUpYearsArea() {
+        addYearButtonCollapsed = (RelativeLayout) findViewById(R.id.collapsed_button_add_year);
+        addYearButtonCollapsed.setVisibility(View.GONE);
+        addYearButtonCollapsed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addYear();
+            }
+        });
+
         noYearsView = (TextView) findViewById(R.id.textview_no_years);
         yearRecyclerView = (ReactiveRecyclerView) findViewById(R.id.recyclerview_years);
 
@@ -288,6 +308,7 @@ public class OverviewActivity extends AppCompatActivity
             @Override
             public void onChanged(@Nullable List<Year> years) {
                 yearRecyclerViewAdapter.updateYears(years);
+                updateYearsArea();
             }
         };
         yearListViewModel.getYearList().observe(this, yearListObserver);
