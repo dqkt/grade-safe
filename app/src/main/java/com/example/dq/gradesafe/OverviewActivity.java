@@ -34,7 +34,8 @@ import java.util.List;
 public class OverviewActivity extends AppCompatActivity
         implements YearReactiveRecyclerViewAdapter.YearActionCallback {
 
-    private static final float PERCENTAGE_TO_SHOW_TITLE_AT_TOOLBAR  = 0.8f;
+    private static final float PERCENTAGE_TO_SHOW_TITLE_AT_TOOLBAR  = 0.6f;
+    private static final float PERCENTAGE_TO_SHOW_ADD_BUTTON        = 0.9f;
     private static final int ALPHA_ANIMATIONS_DURATION              = 200;
 
     private List<GradingScale> gradingScales;
@@ -55,8 +56,6 @@ public class OverviewActivity extends AppCompatActivity
     private RelativeLayout addYearDialogLayout;
     private EditText newYearName;
 
-    private Menu menu;
-
     private Toolbar overviewToolbar;
     private AppBarLayout appBarLayout;
 
@@ -67,6 +66,7 @@ public class OverviewActivity extends AppCompatActivity
     private TextView overallNumCredits;
 
     private boolean isTheTitleVisible;
+    private boolean isTheAddButtonVisible;
 
     private DrawerLayout mainDrawer;
     private ActionBarDrawerToggle mainDrawerToggle;
@@ -89,7 +89,6 @@ public class OverviewActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        this.menu = menu;
         getMenuInflater().inflate(R.menu.menu_overview, menu);
         return super.onCreateOptionsMenu(menu);
     }
@@ -128,47 +127,14 @@ public class OverviewActivity extends AppCompatActivity
         appBarLayout = findViewById(R.id.overview_appbar_container);
 
         appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-            boolean addButtonShowing = false;
-
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
                 int maxScroll = appBarLayout.getTotalScrollRange();
-                float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.6));
+                float percentage = (float) Math.abs(verticalOffset) / ((float) maxScroll);
 
                 titleContainer.setAlpha(1 - percentage);
                 handleToolbarTitleVisibility(percentage);
-                if (Math.abs(verticalOffset) == maxScroll) {
-                    if (!addButtonShowing) {
-                        addButtonShowing = true;
-                        addYearButtonCollapsed.setVisibility(View.VISIBLE);
-                        addYearButtonCollapsed.animate().setDuration(200).alpha(1.0f).setListener(null);
-                    }
-                } else {
-                    if (addButtonShowing) {
-                        addButtonShowing = false;
-                        addYearButtonCollapsed.animate().setDuration(200).alpha(0.0f).setListener(new Animator.AnimatorListener() {
-                            @Override
-                            public void onAnimationStart(Animator animator) {
-
-                            }
-
-                            @Override
-                            public void onAnimationEnd(Animator animator) {
-                                addYearButtonCollapsed.setVisibility(View.GONE);
-                            }
-
-                            @Override
-                            public void onAnimationCancel(Animator animator) {
-
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animator animator) {
-
-                            }
-                        });
-                    }
-                }
+                handleAddButtonVisibility(percentage);
             }
         });
     }
@@ -206,6 +172,20 @@ public class OverviewActivity extends AppCompatActivity
             if (isTheTitleVisible) {
                 startAlphaAnimation(title, ALPHA_ANIMATIONS_DURATION, View.INVISIBLE);
                 isTheTitleVisible = false;
+            }
+        }
+    }
+
+    private void handleAddButtonVisibility(float percentage) {
+        if (percentage >= PERCENTAGE_TO_SHOW_ADD_BUTTON) {
+            if (!isTheAddButtonVisible) {
+                startAlphaAnimation(addYearButtonCollapsed, ALPHA_ANIMATIONS_DURATION, View.VISIBLE);
+                isTheAddButtonVisible = true;
+            }
+        } else {
+            if (isTheAddButtonVisible) {
+                startAlphaAnimation(addYearButtonCollapsed, ALPHA_ANIMATIONS_DURATION, View.GONE);
+                isTheAddButtonVisible = false;
             }
         }
     }
@@ -274,14 +254,16 @@ public class OverviewActivity extends AppCompatActivity
     }
 
     private void setUpYearsArea() {
+        isTheAddButtonVisible = false;
+
         addYearButtonCollapsed = (RelativeLayout) findViewById(R.id.collapsed_button_add_year);
-        addYearButtonCollapsed.setVisibility(View.GONE);
         addYearButtonCollapsed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 addYear();
             }
         });
+        startAlphaAnimation(addYearButtonCollapsed, 0, View.GONE);
 
         noYearsView = (TextView) findViewById(R.id.textview_no_years);
         yearRecyclerView = (ReactiveRecyclerView) findViewById(R.id.recyclerview_years);

@@ -47,13 +47,15 @@ public class CourseActivity extends AppCompatActivity {
     static final String SELECTED_COURSE_KEY = "SELECTED_COURSE";
     static final String CORRESPONDING_TERM_KEY = "CORRESPONDING_TERM";
 
+    private static final float PERCENTAGE_TO_SHOW_ADD_BUTTON        = 0.9f;
+    private static final int ALPHA_ANIMATIONS_DURATION              = 200;
+
     private Toolbar courseToolbar;
-    private Menu menu;
     private AppBarLayout appBarLayout;
 
     private TextView title;
     private RelativeLayout titleContainer;
-    private boolean isTheTitleVisible;
+    private boolean isTheAddButtonVisible;
 
     private CourseListViewModel courseListViewModel;
     private AssignmentListViewModel assignmentListViewModel;
@@ -106,7 +108,6 @@ public class CourseActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
-        this.menu = menu;
         getMenuInflater().inflate(R.menu.menu_course, menu);
         return super.onCreateOptionsMenu(menu);
     }
@@ -313,7 +314,6 @@ public class CourseActivity extends AppCompatActivity {
     private void setUpToolbar() {
         title = findViewById(R.id.course_title);
         titleContainer = findViewById(R.id.course_expanded_title);
-        isTheTitleVisible = false;
 
         setTitle("");
         title.setText(course.getName());
@@ -333,54 +333,49 @@ public class CourseActivity extends AppCompatActivity {
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
                 int maxScroll = appBarLayout.getTotalScrollRange();
-                float percentage = (float) Math.abs(verticalOffset) / ((float) (maxScroll * 0.6));
+                float percentage = (float) Math.abs(verticalOffset) / ((float) maxScroll);
 
                 titleContainer.setAlpha(1 - percentage);
-                if (Math.abs(verticalOffset) == maxScroll) {
-                    if (!addButtonShowing) {
-                        addButtonShowing = true;
-                        addAssignmentButtonCollapsed.setVisibility(View.VISIBLE);
-                        addAssignmentButtonCollapsed.animate().setDuration(200).alpha(1.0f).setListener(null);
-                    }
-                } else {
-                    if (addButtonShowing) {
-                        addButtonShowing = false;
-                        addAssignmentButtonCollapsed.animate().setDuration(200).alpha(0.0f).setListener(new Animator.AnimatorListener() {
-                            @Override
-                            public void onAnimationStart(Animator animator) {
-
-                            }
-
-                            @Override
-                            public void onAnimationEnd(Animator animator) {
-                                addAssignmentButtonCollapsed.setVisibility(View.GONE);
-                            }
-
-                            @Override
-                            public void onAnimationCancel(Animator animator) {
-
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(Animator animator) {
-
-                            }
-                        });
-                    }
-                }
+                handleAddButtonVisibility(percentage);
             }
         });
     }
 
+    private void handleAddButtonVisibility(float percentage) {
+        if (percentage >= PERCENTAGE_TO_SHOW_ADD_BUTTON) {
+            if (!isTheAddButtonVisible) {
+                startAlphaAnimation(addAssignmentButtonCollapsed, ALPHA_ANIMATIONS_DURATION, View.VISIBLE);
+                isTheAddButtonVisible = true;
+            }
+        } else {
+            if (isTheAddButtonVisible) {
+                startAlphaAnimation(addAssignmentButtonCollapsed, ALPHA_ANIMATIONS_DURATION, View.GONE);
+                isTheAddButtonVisible = false;
+            }
+        }
+    }
+
+    public static void startAlphaAnimation(View v, long duration, int visibility) {
+        AlphaAnimation alphaAnimation = (visibility == View.VISIBLE)
+                ? new AlphaAnimation(0f, 1f)
+                : new AlphaAnimation(1f, 0f);
+
+        alphaAnimation.setDuration(duration);
+        alphaAnimation.setFillAfter(true);
+        v.startAnimation(alphaAnimation);
+    }
+    
     private void setUpAssignmentsArea() {
+        isTheAddButtonVisible = false;
+
         addAssignmentButtonCollapsed = (RelativeLayout) findViewById(R.id.collapsed_button_add_assignment);
-        addAssignmentButtonCollapsed.setVisibility(View.GONE);
         addAssignmentButtonCollapsed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 addAssignment();
             }
         });
+        startAlphaAnimation(addAssignmentButtonCollapsed, 0, View.GONE);
 
         noAssignmentsView = (TextView) findViewById(R.id.textview_no_assignments);
         assignmentRecyclerView = (RecyclerView) findViewById(R.id.recyclerview_assignments);

@@ -22,62 +22,86 @@
             android:id="@+id/color_bar">
         </RelativeLayout>
 
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_gravity="center_vertical"
-            android:layout_margin="16dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@android:color/black"
-                android:textSize="16sp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:id="@+id/textview_name"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@android:color/black"
-                android:alpha="0.5"
-                android:textSize="12sp"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:id="@+id/textview_weight"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_gravity="center_vertical|end"
-            android:gravity="center_vertical|end"
-            android:orientation="vertical"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="16dp"
-            android:id="@+id/layout_results">
+            android:id="@+id/layout_content">
 
-<!--
-            <TextView
-                android:gravity="end"
+            <RelativeLayout
+                android:layout_alignParentTop="true"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@android:color/black"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:id="@+id/textview_grade"/>
--->
+                android:layout_height="match_parent"
+                android:layout_margin="16dp">
 
-            <TextView
-                android:gravity="end"
+                <LinearLayout
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@id/layout_results"
+                    android:orientation="vertical"
+                    android:layout_gravity="center_vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:id="@+id/textview_name"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@android:color/black"
+                        android:alpha="0.5"
+                        android:textSize="12sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:id="@+id/textview_weight"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_alignParentEnd="true"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:id="@+id/layout_results">
+
+        <!--
+                    <TextView
+                        android:gravity="end"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:id="@+id/textview_grade"/>
+        -->
+
+                    <TextView
+                        android:gravity="end"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@android:color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:id="@+id/textview_score"/>
+                </LinearLayout>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_alignParentStart="true"
+                android:layout_alignParentBottom="true"
+                android:background="@color/colorAccent"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@android:color/black"
-                android:textSize="18sp"
-                android:id="@+id/textview_score"/>
-        </LinearLayout>
+                android:layout_height="2dp"
+                android:id="@+id/weight_bar">
+            </RelativeLayout>
+        </RelativeLayout>
     </LinearLayout>
 </RelativeLayout>

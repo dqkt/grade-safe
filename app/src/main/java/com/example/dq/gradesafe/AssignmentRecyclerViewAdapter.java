@@ -11,9 +11,11 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -227,6 +229,7 @@ class AssignmentViewHolder extends RecyclerView.ViewHolder {
     private TextView weight;
     private TextView score;
     private TextView grade;
+    private RelativeLayout weightBar;
 
     public AssignmentViewHolder(View view) {
         super(view);
@@ -243,13 +246,26 @@ class AssignmentViewHolder extends RecyclerView.ViewHolder {
         weight = (TextView) overallLayout.findViewById(R.id.textview_weight);
         score = (TextView) overallLayout.findViewById(R.id.textview_score);
         // grade = (TextView) overallLayout.findViewById(R.id.textview_grade);
+        weightBar = (RelativeLayout) overallLayout.findViewById(R.id.weight_bar);
     }
 
     public void updateViewHolder(Assignment currentAssignment) {
         assignment = currentAssignment;
         name.setText(currentAssignment.getName());
 
-        weight.setText(String.valueOf("Worth " + AssignmentRecyclerViewAdapter.weightFormatter.format(currentAssignment.getWeight())));
+        final double weightValue = currentAssignment.getWeight();
+        weight.setText(String.valueOf("Worth " + AssignmentRecyclerViewAdapter.weightFormatter.format(weightValue)));
+        final RelativeLayout contentLayout = (RelativeLayout) overallLayout.findViewById(R.id.layout_content);
+        contentLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                int pixels = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, context.getResources().getDisplayMetrics());
+                RelativeLayout.LayoutParams weightBarLayoutParams = new RelativeLayout.LayoutParams((int) (contentLayout.getWidth() * weightValue / 100.0), pixels);
+                weightBarLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                weightBar.setLayoutParams(weightBarLayoutParams);
+            }
+        });
+
         double scoreDenominator;
         if ((scoreDenominator = currentAssignment.getScoreDenominator()) != 0 && assignment.isComplete()) {
             double overallScore = currentAssignment.getScoreNumerator() / scoreDenominator * 100;
@@ -258,7 +274,7 @@ class AssignmentViewHolder extends RecyclerView.ViewHolder {
             /*if (scoreRange != null) {
                 grade.setText(scoreRange.getGrade());
             }*/
-            score.setText(AssignmentRecyclerViewAdapter.scoreFormatter.format(Math.rint(overallScore)));
+            score.setText(AssignmentRecyclerViewAdapter.scoreFormatter.format(overallScore));
         } else {
             // grade.setText("");
             score.setText("");
